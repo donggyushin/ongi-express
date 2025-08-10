@@ -4,52 +4,62 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
 
+import { Container } from '@/shared/utils';
+import { ErrorMiddleware } from '@/presentation/middlewares';
+import { HealthRoutes, WelcomeRoutes } from '@/presentation/routes';
+
 dotenv.config();
 
-const app = express();
+class App {
+  private app = express();
+  private container = Container.getInstance();
 
-app.use(helmet());
-app.use(cors());
-app.use(morgan('combined'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  constructor() {
+    this.initializeMiddlewares();
+    this.initializeRoutes();
+    this.initializeErrorHandling();
+  }
 
-app.get('/', (req: Request, res: Response) => {
-  res.json({
-    message: 'Welcome to Ongi API',
-    status: 'Running',
-    timestamp: new Date().toISOString()
-  });
-});
+  private initializeMiddlewares(): void {
+    this.app.use(helmet());
+    this.app.use(cors());
+    this.app.use(morgan('combined'));
+    this.app.use(express.json());
+    this.app.use(express.urlencoded({ extended: true }));
+  }
 
-app.get('/health', (req: Request, res: Response) => {
-  res.status(200).json({
-    status: 'OK',
-    uptime: process.uptime(),
-    timestamp: new Date().toISOString()
-  });
-});
+  private initializeRoutes(): void {
+    const welcomeRoutes = this.container.get<WelcomeRoutes>('welcomeRoutes');
+    const healthRoutes = this.container.get<HealthRoutes>('healthRoutes');
 
-app.use('*', (req: Request, res: Response) => {
-  res.status(404).json({
-    error: 'Not Found',
-    message: 'The requested resource was not found on this server.'
-  });
-});
+    this.app.use('/', welcomeRoutes.getRouter());
+    this.app.use('/health', healthRoutes.getRouter());
+  }
 
-app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
-  console.error(err.stack);
-  res.status(500).json({
-    error: 'Internal Server Error',
-    message: process.env.NODE_ENV === 'production' ? 'Something went wrong!' : err.message
-  });
-});
+  private initializeErrorHandling(): void {
+    const errorMiddleware = this.container.get<ErrorMiddleware>('errorMiddleware');
 
-const PORT = process.env.PORT || 3000;
+    this.app.use('*', (req, res) => errorMiddleware.notFound(req, res));
+    this.app.use((err: Error, req: Request, res: Response, next: NextFunction) => 
+      errorMiddleware.handle(err, req, res, next)
+    );
+  }
 
-app.listen(PORT, () => {
-  console.log(`🚀 Ongi server is running on port ${PORT}`);
-  console.log(`📍 Health check: http://localhost:${PORT}/health`);
-});
+  public listen(): void {
+    const PORT = process.env.PORT || 3000;
 
-export default app;
+    this.app.listen(PORT, () => {
+      console.log(`🚀 Ongi server is running on port ${PORT}`);
+      console.log(`📍 Health check: http://localhost:${PORT}/health`);
+    });
+  }
+
+  public getApp() {
+    return this.app;
+  }
+}
+
+const app = new App();
+app.listen();
+
+export default app.getApp();
