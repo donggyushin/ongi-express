@@ -29,5 +29,8 @@ build/
 .tmp/
 .cache/
 
+# TypeScript
+*.tsbuildinfo
+
 .nyc_output
 coverage/
