@@ -1,14 +1,15 @@
 # Ongi Express Server
 
-Express.js backend server for ongi service built with TypeScript
+Express.js backend server for ongi service built with TypeScript and Clean Architecture principles
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (v16 or higher)
+- Node.js (v18 or higher)
 - npm or yarn
 - TypeScript knowledge
+- Understanding of Clean Architecture principles (recommended)
 
 ### Installation
 
@@ -50,8 +51,18 @@ The server will start on `http://localhost:3000`
 
 ## 📋 API Endpoints
 
+All API responses follow a consistent format:
+```typescript
+{
+  "success": boolean,
+  "data?": any,        // Present on successful responses
+  "message?": string,  // Optional message
+  "error?": string     // Present on error responses
+}
+```
+
 ### Health Check
-- `GET /health` - Server health status
+- `GET /health` - Server health status with uptime information
 
 ### Main
 - `GET /` - Welcome message and server info
@@ -59,7 +70,9 @@ The server will start on `http://localhost:3000`
 ## 🛠 Built With
 
 - **TypeScript** - Type-safe JavaScript
-- **Express.js** - Web framework
+- **Express.js 5.x** - Web framework
+- **Clean Architecture** - Layered architecture with dependency inversion
+- **Dependency Injection** - Custom DI container for service management
 - **Helmet** - Security middleware
 - **CORS** - Cross-origin resource sharing
 - **Morgan** - HTTP request logger
@@ -69,25 +82,75 @@ The server will start on `http://localhost:3000`
 
 ## 📁 Project Structure
 
+This project follows Clean Architecture principles with strict layer separation:
+
 ```
 ongi-express/
 ├── src/
-│   └── app.ts          # Main TypeScript application file
-├── dist/               # Compiled JavaScript files (after build)
-├── tsconfig.json       # TypeScript configuration
-├── package.json        # Project dependencies and scripts
-├── .env.example        # Environment variables template
-├── .env               # Environment variables (not in git)
-├── .gitignore         # Git ignore rules
-└── README.md          # Project documentation
+│   ├── app.ts                          # Main application entry point
+│   ├── domain/                         # Business logic layer
+│   │   ├── entities/                   # Core business objects
+│   │   │   ├── health.entity.ts
+│   │   │   └── index.ts
+│   │   └── use-cases/                  # Business logic implementation
+│   │       ├── health.use-case.ts
+│   │       ├── welcome.use-case.ts
+│   │       └── index.ts
+│   ├── infrastructure/                 # External services layer
+│   │   └── services/                   # Service implementations
+│   │       ├── logger.service.ts
+│   │       └── index.ts
+│   ├── presentation/                   # API layer
+│   │   ├── controllers/                # HTTP request handlers
+│   │   │   ├── health.controller.ts
+│   │   │   ├── welcome.controller.ts
+│   │   │   └── index.ts
+│   │   ├── middlewares/                # Cross-cutting concerns
+│   │   │   ├── error.middleware.ts
+│   │   │   └── index.ts
+│   │   └── routes/                     # API endpoint definitions
+│   │       ├── health.routes.ts
+│   │       ├── welcome.routes.ts
+│   │       └── index.ts
+│   └── shared/                         # Common utilities
+│       ├── types/                      # Shared type definitions
+│       │   ├── response.ts
+│       │   └── index.ts
+│       └── utils/                      # Utilities and DI container
+│           ├── container.ts
+│           └── index.ts
+├── dist/                               # Compiled JavaScript files
+├── tsconfig.json                       # TypeScript configuration
+├── package.json                        # Project dependencies and scripts
+├── .env.example                        # Environment variables template
+├── CLAUDE.md                           # Development guidelines for Claude Code
+└── README.md                           # Project documentation
 ```
+
+### Architecture Layers
+
+- **Domain**: Core business logic and entities (framework-independent)
+- **Infrastructure**: External services and implementations
+- **Presentation**: Controllers, routes, and middlewares (Express.js specific)
+- **Shared**: Common types, utilities, and dependency injection container
+
+### Dependency Flow
+Dependencies only flow inward: Presentation → Domain ← Infrastructure ← Shared
+
+## 🏗️ Architecture Features
+
+- **Dependency Injection**: Custom DI container manages all service dependencies
+- **Interface-based Design**: All use cases and services implement interfaces
+- **Error Handling**: Centralized error middleware with environment-aware responses
+- **Type Safety**: Full TypeScript coverage with strict compiler options
+- **Path Mapping**: Clean imports using `@/` aliases for different layers
 
 ## 🔧 Environment Variables
 
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `PORT` | Server port | `3000` |
-| `NODE_ENV` | Environment mode | `development` |
+| `NODE_ENV` | Environment mode (affects error verbosity) | `development` |
 
 ## 📝 License
 

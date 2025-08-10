@@ -23,7 +23,11 @@
     "moduleResolution": "node",
     "baseUrl": "./",
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "@/domain/*": ["src/domain/*"],
+      "@/infrastructure/*": ["src/infrastructure/*"],
+      "@/presentation/*": ["src/presentation/*"],
+      "@/shared/*": ["src/shared/*"]
     },
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,
