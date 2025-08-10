@@ -88,3 +88,17 @@ All API responses follow the `ApiResponse<T>` interface:
 - Environment variables loaded via `dotenv`
 - Default PORT: 3000
 - NODE_ENV affects error message verbosity
+
+### Version Compatibility Notes
+
+**Express Version**: Currently using Express 4.x (stable)
+- Express 5.x is experimental and has path-to-regexp compatibility issues
+- Avoid upgrading to Express 5.x until it reaches stable release
+- If Express 5 upgrade is needed:
+  1. Test thoroughly for path-to-regexp related errors
+  2. May require changing wildcard routes from `app.use('*', ...)` to `app.all('*', ...)`
+  3. Consider explicit path-to-regexp version pinning
+
+**Troubleshooting Common Issues**:
+- `TypeError: Missing parameter name`: Usually indicates Express 5 + path-to-regexp compatibility issue
+- Solution: Downgrade to Express 4.x or wait for Express 5 stable release

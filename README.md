@@ -70,7 +70,7 @@ All API responses follow a consistent format:
 ## 🛠 Built With
 
 - **TypeScript** - Type-safe JavaScript
-- **Express.js 5.x** - Web framework
+- **Express.js 4.x** - Web framework (stable version)
 - **Clean Architecture** - Layered architecture with dependency inversion
 - **Dependency Injection** - Custom DI container for service management
 - **Helmet** - Security middleware
@@ -151,6 +151,20 @@ Dependencies only flow inward: Presentation → Domain ← Infrastructure ← Sh
 |----------|-------------|---------|
 | `PORT` | Server port | `3000` |
 | `NODE_ENV` | Environment mode (affects error verbosity) | `development` |
+
+## ⚠️ Known Issues & Compatibility
+
+### Express Version Compatibility
+- **Current Version**: Express 4.21.2 (stable and recommended)
+- **Express 5.x Status**: Experimental - has known compatibility issues with path-to-regexp
+- **Issue**: Upgrading to Express 5.x causes `TypeError: Missing parameter name` errors
+- **Recommendation**: Stay on Express 4.x until Express 5 reaches stable release
+
+### Troubleshooting
+If you encounter path-to-regexp related errors:
+1. Ensure Express version is 4.x: `npm install express@^4.21.2`
+2. Update type definitions: `npm install -D @types/express@^4.17.23`
+3. Avoid explicit path-to-regexp installation unless necessary
 
 ## 📝 License
 
