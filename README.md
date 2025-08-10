@@ -1,13 +1,14 @@
 # Ongi Express Server
 
-Express.js backend server for ongi service
+Express.js backend server for ongi service built with TypeScript
 
 ## 🚀 Getting Started
 
 ### Prerequisites
 
-- Node.js (v14 or higher)
+- Node.js (v16 or higher)
 - npm or yarn
+- TypeScript knowledge
 
 ### Installation
 
@@ -32,11 +33,17 @@ cp .env.example .env
 ### Running the Server
 
 ```bash
-# Development mode (with nodemon)
+# Build TypeScript to JavaScript
+npm run build
+
+# Development mode (with ts-node and nodemon)
 npm run dev
 
-# Production mode
+# Production mode (requires build first)
 npm start
+
+# Type checking only
+npm run typecheck
 ```
 
 The server will start on `http://localhost:3000`
@@ -51,17 +58,23 @@ The server will start on `http://localhost:3000`
 
 ## 🛠 Built With
 
+- **TypeScript** - Type-safe JavaScript
 - **Express.js** - Web framework
 - **Helmet** - Security middleware
 - **CORS** - Cross-origin resource sharing
 - **Morgan** - HTTP request logger
 - **dotenv** - Environment variable management
+- **ts-node** - TypeScript execution for Node.js
+- **nodemon** - Development server with auto-restart
 
 ## 📁 Project Structure
 
 ```
 ongi-express/
-├── app.js              # Main application file
+├── src/
+│   └── app.ts          # Main TypeScript application file
+├── dist/               # Compiled JavaScript files (after build)
+├── tsconfig.json       # TypeScript configuration
 ├── package.json        # Project dependencies and scripts
 ├── .env.example        # Environment variables template
 ├── .env               # Environment variables (not in git)
