@@ -186,14 +186,17 @@ Dependencies only flow inward: Presentation → Domain ← Infrastructure ← Sh
 
 ## 🔧 Environment Variables
 
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `PORT` | Server port | `3000` |
-| `NODE_ENV` | Environment mode (affects error verbosity) | `development` |
-| `DATABASE_URL` | PostgreSQL connection string from Railway | Required |
-| `JWT_SECRET` | Secret key for JWT tokens | `your-secret-key-here` |
-| `JWT_EXPIRES_IN` | JWT token expiration time | `7d` |
-| `API_KEY` | API key for external services | Optional |
+| Variable | Description | Default | Required |
+|----------|-------------|---------|----------|
+| `PORT` | Server port | `3000` | No |
+| `NODE_ENV` | Environment mode (affects error verbosity) | `development` | No |
+| `DATABASE_URL` | PostgreSQL connection string (required for database operations) | - | Yes |
+| `JWT_SECRET` | Secret key for JWT token authentication | `your-secret-key-here` | Yes |
+| `JWT_EXPIRES_IN` | JWT token expiration time | `7d` | No |
+| `API_KEY` | API key for external services | - | No |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name for image storage | - | No |
+| `CLOUDINARY_API_KEY` | Cloudinary API key for image operations | - | No |
+| `CLOUDINARY_API_SECRET` | Cloudinary API secret for image operations | - | No |
 
 ## 🚂 Railway Deployment
 

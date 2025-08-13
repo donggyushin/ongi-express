@@ -139,13 +139,24 @@ const isHealthy = await databaseService.healthCheck();
 
 ### Environment Configuration
 
-- Environment variables loaded via `dotenv`
-- Default PORT: 3000
-- NODE_ENV affects error message verbosity
-- DATABASE_URL: PostgreSQL connection string (required for database operations)
-- JWT_SECRET: Secret key for JWT tokens
-- JWT_EXPIRES_IN: JWT token expiration time
-- API_KEY: Optional API key for external services
+Environment variables loaded via `dotenv`:
+
+**Server Configuration**
+- `PORT`: Server port (default: 3000)
+- `NODE_ENV`: Environment mode, affects error message verbosity (default: development)
+
+**Database Configuration**
+- `DATABASE_URL`: PostgreSQL connection string (required for database operations)
+
+**Authentication Configuration**
+- `JWT_SECRET`: Secret key for JWT token authentication (required)
+- `JWT_EXPIRES_IN`: JWT token expiration time (default: 7d)
+
+**External Services Configuration**
+- `API_KEY`: Optional API key for external services
+- `CLOUDINARY_CLOUD_NAME`: Cloudinary cloud name for image storage (optional)
+- `CLOUDINARY_API_KEY`: Cloudinary API key for image operations (optional)
+- `CLOUDINARY_API_SECRET`: Cloudinary API secret for image operations (optional)
 
 ### Railway Deployment
 
