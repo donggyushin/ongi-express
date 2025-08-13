@@ -1,10 +1,10 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase } from '@/domain/use-cases';
 import { IAccountRepository, ISystemRepository } from '@/domain/repositories';
-import { ConsoleLoggerService, ILoggerService, DatabaseService, AccountService, SystemService, PrismaService, PrismaAccountService } from '@/infrastructure/services';
+import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService } from '@/infrastructure/services';
 import { IDatabaseService } from '@/shared/types';
-import { HealthController, WelcomeController, DatabaseController, AccountController, MigrationController } from '@/presentation/controllers';
+import { HealthController, WelcomeController, DatabaseController, AccountController } from '@/presentation/controllers';
 import { ErrorMiddleware } from '@/presentation/middlewares';
-import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, MigrationRoutes } from '@/presentation/routes';
+import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes } from '@/presentation/routes';
 
 export class Container {
   private static instance: Container;
@@ -40,7 +40,6 @@ export class Container {
     this.services.set('welcomeController', new WelcomeController(this.get<IWelcomeUseCase>('welcomeUseCase')));
     this.services.set('databaseController', new DatabaseController(this.get<IDatabaseService>('database')));
     this.services.set('accountController', new AccountController(this.get<ICreateAccountUseCase>('createAccountUseCase')));
-    this.services.set('migrationController', new MigrationController(this.get<IDatabaseService>('database')));
 
     // Middlewares
     this.services.set('errorMiddleware', new ErrorMiddleware(this.get<ILoggerService>('logger')));
@@ -50,7 +49,6 @@ export class Container {
     this.services.set('welcomeRoutes', new WelcomeRoutes(this.get<WelcomeController>('welcomeController')));
     this.services.set('databaseRoutes', new DatabaseRoutes(this.get<DatabaseController>('databaseController')));
     this.services.set('accountRoutes', new AccountRoutes(this.get<AccountController>('accountController')));
-    this.services.set('migrationRoutes', new MigrationRoutes(this.get<MigrationController>('migrationController')));
   }
 
   get<T>(serviceName: string): T {
