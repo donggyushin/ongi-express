@@ -21,5 +21,8 @@ export class ProfileRoutes {
       this.profileController.uploadMiddleware,
       this.profileController.uploadProfileImage
     );
+
+    // PATCH /profiles/nickname - Update current user nickname
+    this.router.patch('/nickname', AuthMiddleware.verifyToken, this.profileController.updateNickname);
   }
 }

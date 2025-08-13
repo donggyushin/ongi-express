@@ -77,6 +77,47 @@ export class ProfileController {
     }
   };
 
+  public updateNickname = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { nickname } = req.body;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!nickname) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Nickname is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const updatedProfile = await this.profileUseCase.updateNickname(accountId, nickname);
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: updatedProfile,
+        message: 'Nickname updated successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update nickname'
+      };
+      res.status(500).json(response);
+    }
+  };
+
   public getProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const accountId = req.userId;

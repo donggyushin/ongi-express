@@ -39,6 +39,18 @@ export class PrismaProfileService implements IProfileRepository {
     return updatedProfile as Profile;
   }
 
+  async updateNickname(accountId: string, nickname: string): Promise<Profile> {
+    const updatedProfile = await this.prisma.profile.update({
+      where: { accountId },
+      data: { nickname },
+      include: {
+        qnas: true
+      }
+    });
+
+    return updatedProfile as Profile;
+  }
+
   async update(id: string, data: Partial<Profile>): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },
