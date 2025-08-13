@@ -1,10 +1,10 @@
-import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase } from '@/domain/use-cases';
-import { IAccountRepository, ISystemRepository, IJwtRepository } from '@/domain/repositories';
-import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService } from '@/infrastructure/services';
+import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, ProfileUseCase, IProfileUseCase } from '@/domain/use-cases';
+import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository } from '@/domain/repositories';
+import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService } from '@/infrastructure/services';
 import { IDatabaseService } from '@/shared/types';
-import { HealthController, WelcomeController, DatabaseController, AccountController } from '@/presentation/controllers';
+import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController } from '@/presentation/controllers';
 import { ErrorMiddleware } from '@/presentation/middlewares';
-import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes } from '@/presentation/routes';
+import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes } from '@/presentation/routes';
 
 export class Container {
   private static instance: Container;
@@ -28,6 +28,8 @@ export class Container {
     this.services.set('database', new DatabaseService());
     this.services.set('prisma', PrismaService.getInstance());
     this.services.set('accountRepository', new PrismaAccountService(this.get('prisma')));
+    this.services.set('profileRepository', new PrismaProfileService(this.get('prisma')));
+    this.services.set('imageRepository', new CloudinaryService(this.get<ILoggerService>('logger')));
     this.services.set('systemRepository', new SystemService());
     this.services.set('jwtRepository', new JwtService());
 
@@ -40,6 +42,10 @@ export class Container {
     ));
     this.services.set('getAccountUseCase', new GetAccountUseCase(this.get<IAccountRepository>('accountRepository')));
     this.services.set('refreshTokenUseCase', new RefreshTokenUseCase(this.get<IJwtRepository>('jwtRepository')));
+    this.services.set('profileUseCase', new ProfileUseCase(
+      this.get<IProfileRepository>('profileRepository'),
+      this.get<IImageRepository>('imageRepository')
+    ));
 
     // Controllers
     this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));
@@ -50,6 +56,7 @@ export class Container {
       this.get<IGetAccountUseCase>('getAccountUseCase'),
       this.get<IRefreshTokenUseCase>('refreshTokenUseCase')
     ));
+    this.services.set('profileController', new ProfileController(this.get<IProfileUseCase>('profileUseCase')));
 
     // Middlewares
     this.services.set('errorMiddleware', new ErrorMiddleware(this.get<ILoggerService>('logger')));
@@ -59,6 +66,7 @@ export class Container {
     this.services.set('welcomeRoutes', new WelcomeRoutes(this.get<WelcomeController>('welcomeController')));
     this.services.set('databaseRoutes', new DatabaseRoutes(this.get<DatabaseController>('databaseController')));
     this.services.set('accountRoutes', new AccountRoutes(this.get<AccountController>('accountController')));
+    this.services.set('profileRoutes', new ProfileRoutes(this.get<ProfileController>('profileController')));
   }
 
   get<T>(serviceName: string): T {
