@@ -18,7 +18,6 @@ model Account {
   id        String      @id
   type      AccountType
   createdAt DateTime    @default(now()) @map("created_at")
-  profile   Profile     @relation(fields: [id], references: [accountId])
 
   @@map("accounts")
 }
@@ -33,7 +32,6 @@ model Profile {
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")
   
-  account      Account?
   qnas         QnA[]
 
   @@map("profiles")
