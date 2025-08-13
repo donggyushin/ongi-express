@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { ICreateAccountUseCase } from '@/domain/use-cases';
 import { AccountType } from '@/domain/entities';
-import { ApiResponse, CreateAccountRequest, AccountResponse } from '@/shared/types';
+import { ApiResponse, CreateAccountRequest, AuthTokensResponse } from '@/shared/types';
 
 export class AccountController {
   constructor(private readonly createAccountUseCase: ICreateAccountUseCase) {}
@@ -28,11 +28,11 @@ export class AccountController {
         return;
       }
 
-      const account = await this.createAccountUseCase.execute(id, type as AccountType);
+      const tokens = await this.createAccountUseCase.execute(id, type as AccountType);
       
-      const response: ApiResponse<AccountResponse> = {
+      const response: ApiResponse<AuthTokensResponse> = {
         success: true,
-        data: account.toJSON(),
+        data: tokens.toJSON(),
         message: 'Account created successfully'
       };
       

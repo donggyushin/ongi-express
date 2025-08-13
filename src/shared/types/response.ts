@@ -22,8 +22,7 @@ export interface CreateAccountRequest {
   type: 'email' | 'apple' | 'kakao' | 'gmail';
 }
 
-export interface AccountResponse {
-  id: string;
-  type: string;
-  createdAt: string;
+export interface AuthTokensResponse {
+  accessToken: string;
+  refreshToken: string;
 }
