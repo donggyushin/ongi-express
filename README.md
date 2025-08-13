@@ -33,6 +33,15 @@ cp .env.example .env
 
 4. Edit `.env` file with your configuration (including Railway PostgreSQL connection string)
 
+5. Set up the database with Prisma
+```bash
+# Generate Prisma client
+npx prisma generate
+
+# Apply database migrations
+npx prisma migrate dev
+```
+
 ### Running the Server
 
 ```bash
@@ -69,6 +78,39 @@ All API responses follow a consistent format:
 ### Database
 - `GET /database/test` - Database connection status and health check
 
+### Accounts
+- `POST /accounts` - Create a new user account
+
+#### Account Creation
+```bash
+POST /accounts
+Content-Type: application/json
+
+{
+  "id": "apple_user_123",
+  "type": "apple"
+}
+```
+
+**Supported Account Types:**
+- `apple` - Apple Sign-In
+- `email` - Email/Password
+- `kakao` - Kakao Login
+- `gmail` - Google/Gmail Login
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "apple_user_123",
+    "type": "apple",
+    "createdAt": "2025-08-13T04:45:39.400Z"
+  },
+  "message": "Account created successfully"
+}
+```
+
 ### Main
 - `GET /` - Welcome message and server info
 
@@ -77,6 +119,7 @@ All API responses follow a consistent format:
 - **TypeScript** - Type-safe JavaScript
 - **Express.js 4.x** - Web framework (stable version)
 - **PostgreSQL** - Relational database hosted on Railway
+- **Prisma** - Type-safe database ORM with auto-migration
 - **Clean Architecture** - Layered architecture with dependency inversion
 - **Dependency Injection** - Custom DI container for service management
 - **Helmet** - Security middleware
@@ -96,9 +139,16 @@ ongi-express/
 │   ├── app.ts                          # Main application entry point
 │   ├── domain/                         # Business logic layer
 │   │   ├── entities/                   # Core business objects
+│   │   │   ├── account.entity.ts       # Account business entity
 │   │   │   ├── health.entity.ts
+│   │   │   ├── welcome.entity.ts
+│   │   │   └── index.ts
+│   │   ├── repositories/               # Interface contracts
+│   │   │   ├── account.repository.ts   # Account repository interface
+│   │   │   ├── system.repository.ts    # System repository interface
 │   │   │   └── index.ts
 │   │   └── use-cases/                  # Business logic implementation
+│   │       ├── account.use-case.ts     # Account creation logic
 │   │       ├── health.use-case.ts
 │   │       ├── welcome.use-case.ts
 │   │       └── index.ts
@@ -108,9 +158,13 @@ ongi-express/
 │   │   └── services/                   # Service implementations
 │   │       ├── database.service.ts
 │   │       ├── logger.service.ts
+│   │       ├── prisma.service.ts       # Prisma client singleton
+│   │       ├── prisma-account.service.ts # Prisma account service
+│   │       ├── system.service.ts
 │   │       └── index.ts
 │   ├── presentation/                   # API layer
 │   │   ├── controllers/                # HTTP request handlers
+│   │   │   ├── account.controller.ts   # Account API controller
 │   │   │   ├── database.controller.ts
 │   │   │   ├── health.controller.ts
 │   │   │   ├── welcome.controller.ts
@@ -119,10 +173,13 @@ ongi-express/
 │   │   │   ├── error.middleware.ts
 │   │   │   └── index.ts
 │   │   └── routes/                     # API endpoint definitions
+│   │       ├── account.routes.ts       # Account API routes
 │   │       ├── database.routes.ts
 │   │       ├── health.routes.ts
 │   │       ├── welcome.routes.ts
 │   │       └── index.ts
+│   ├── generated/                      # Auto-generated files
+│   │   └── prisma/                     # Generated Prisma client
 │   └── shared/                         # Common utilities
 │       ├── types/                      # Shared type definitions
 │       │   ├── database.ts
@@ -131,6 +188,9 @@ ongi-express/
 │       └── utils/                      # Utilities and DI container
 │           ├── container.ts
 │           └── index.ts
+├── prisma/                             # Prisma ORM files
+│   ├── migrations/                     # Database migrations
+│   └── schema.prisma                   # Database schema definition
 ├── dist/                               # Compiled JavaScript files
 ├── tsconfig.json                       # TypeScript configuration
 ├── package.json                        # Project dependencies and scripts
