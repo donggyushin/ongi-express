@@ -1,3 +1,5 @@
+import { Profile } from './profile.entity';
+
 export enum AccountType {
   EMAIL = 'email',
   APPLE = 'apple',
@@ -9,6 +11,7 @@ export class Account {
   constructor(
     public readonly id: string,
     public readonly type: AccountType,
+    public readonly profile: Profile,
     public readonly createdAt: Date = new Date()
   ) {}
 
@@ -16,6 +19,7 @@ export class Account {
     return {
       id: this.id,
       type: this.type,
+      profile: this.profile.toJSON(),
       createdAt: this.createdAt.toISOString()
     };
   }
