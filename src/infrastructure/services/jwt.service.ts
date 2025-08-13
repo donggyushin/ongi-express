@@ -25,4 +25,18 @@ export class JwtService implements IJwtRepository {
 
     return new AuthTokens(accessToken, refreshToken);
   }
+
+  async validateRefreshToken(refreshToken: string): Promise<{ userId: string } | null> {
+    try {
+      const decoded = jwt.verify(refreshToken, this.secretKey) as any;
+      
+      if (decoded.type !== 'refresh') {
+        return null;
+      }
+      
+      return { userId: decoded.userId };
+    } catch (error) {
+      return null;
+    }
+  }
 }

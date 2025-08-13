@@ -1,10 +1,13 @@
 import { Request, Response } from 'express';
-import { ICreateAccountUseCase } from '@/domain/use-cases';
+import { ICreateAccountUseCase, IRefreshTokenUseCase } from '@/domain/use-cases';
 import { AccountType } from '@/domain/entities';
-import { ApiResponse, CreateAccountRequest, AuthTokensResponse } from '@/shared/types';
+import { ApiResponse, CreateAccountRequest, AuthTokensResponse, RefreshTokenRequest } from '@/shared/types';
 
 export class AccountController {
-  constructor(private readonly createAccountUseCase: ICreateAccountUseCase) {}
+  constructor(
+    private readonly createAccountUseCase: ICreateAccountUseCase,
+    private readonly refreshTokenUseCase: IRefreshTokenUseCase
+  ) {}
 
   async createAccount(req: Request, res: Response): Promise<void> {
     try {
@@ -42,6 +45,48 @@ export class AccountController {
       const response: ApiResponse = {
         success: false,
         error: 'Failed to create account'
+      };
+      
+      res.status(500).json(response);
+    }
+  }
+
+  async refreshToken(req: Request, res: Response): Promise<void> {
+    try {
+      const { refreshToken }: RefreshTokenRequest = req.body;
+
+      if (!refreshToken) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Missing required field: refreshToken'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const tokens = await this.refreshTokenUseCase.execute(refreshToken);
+      
+      if (!tokens) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Invalid or expired refresh token'
+        };
+        res.status(401).json(response);
+        return;
+      }
+      
+      const response: ApiResponse<AuthTokensResponse> = {
+        success: true,
+        data: tokens.toJSON(),
+        message: 'Token refreshed successfully'
+      };
+      
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Token refresh error:', error);
+      const response: ApiResponse = {
+        success: false,
+        error: 'Failed to refresh token'
       };
       
       res.status(500).json(response);

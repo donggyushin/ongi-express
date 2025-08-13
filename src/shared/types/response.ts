@@ -26,3 +26,7 @@ export interface AuthTokensResponse {
   accessToken: string;
   refreshToken: string;
 }
+
+export interface RefreshTokenRequest {
+  refreshToken: string;
+}
