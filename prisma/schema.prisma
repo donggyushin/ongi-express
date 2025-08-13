@@ -34,16 +34,20 @@ model Profile {
   updatedAt    DateTime  @updatedAt @map("updated_at")
   
   account      Account   @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  qnas         QnA[]
 
   @@map("profiles")
 }
 
 model QnA {
   id        String   @id @default(cuid())
+  profileId String   @map("profile_id")
   question  String   @db.VarChar(500)
   answer    String   @db.VarChar(1500)
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
+
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
 
   @@map("qnas")
 }

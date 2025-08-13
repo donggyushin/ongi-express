@@ -1,3 +1,5 @@
+import { QnA } from './qna.entity';
+
 export enum MBTIType {
   INTJ = 'INTJ',
   INTP = 'INTP',
@@ -25,6 +27,7 @@ export class Profile {
     public readonly profileImage: string | null = null,
     public readonly images: string[] = [],
     public readonly mbti: MBTIType | null = null,
+    public readonly qnas: QnA[] = [],
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
@@ -37,6 +40,7 @@ export class Profile {
       profileImage: this.profileImage,
       images: this.images,
       mbti: this.mbti,
+      qnas: this.qnas.map(qna => qna.toJSON()),
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString()
     };
