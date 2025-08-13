@@ -1,6 +1,7 @@
 import { Account, AccountType, Profile, QnA } from '@/domain/entities';
 import { IAccountRepository } from '@/domain/repositories';
 import { PrismaClient } from '@/generated/prisma';
+import { generateFriendlyNickname } from '@/shared/utils';
 
 export class PrismaAccountService implements IAccountRepository {
   constructor(private prisma: PrismaClient) {}
@@ -19,6 +20,7 @@ export class PrismaAccountService implements IAccountRepository {
         const profile = await tx.profile.create({
           data: {
             accountId: id,
+            nickname: generateFriendlyNickname(),
           },
           include: {
             qnas: true
