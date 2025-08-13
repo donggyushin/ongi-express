@@ -35,7 +35,7 @@ class App {
 
     this.app.use('/', welcomeRoutes.getRouter());
     this.app.use('/health', healthRoutes.getRouter());
-    this.app.use('/database', databaseRoutes.router);
+    this.app.use('/database', databaseRoutes.getRouter());
   }
 
   private initializeErrorHandling(): void {

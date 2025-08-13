@@ -1,7 +1,7 @@
-import { QueryResult } from 'pg';
+import { QueryResult, QueryResultRow } from 'pg';
 
 export interface IDatabaseService {
-  query<T = any>(text: string, params?: any[]): Promise<QueryResult<T>>;
+  query<T extends QueryResultRow = any>(text: string, params?: any[]): Promise<QueryResult<T>>;
   getClient(): Promise<any>;
   healthCheck(): Promise<boolean>;
 }

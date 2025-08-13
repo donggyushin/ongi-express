@@ -1,4 +1,4 @@
-import { Pool, QueryResult, PoolClient } from 'pg';
+import { Pool, QueryResult, PoolClient, QueryResultRow } from 'pg';
 import { IDatabaseService } from '@/shared/types';
 import { DatabaseConfig } from '@/infrastructure/config/database.config';
 
@@ -9,7 +9,7 @@ export class DatabaseService implements IDatabaseService {
     this.pool = DatabaseConfig.getInstance();
   }
 
-  async query<T = any>(text: string, params?: any[]): Promise<QueryResult<T>> {
+  async query<T extends QueryResultRow = any>(text: string, params?: any[]): Promise<QueryResult<T>> {
     try {
       const result = await this.pool.query<T>(text, params);
       return result;
