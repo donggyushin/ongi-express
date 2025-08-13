@@ -1,6 +1,6 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase } from '@/domain/use-cases';
 import { IAccountRepository, ISystemRepository } from '@/domain/repositories';
-import { ConsoleLoggerService, ILoggerService, DatabaseService, AccountService, SystemService } from '@/infrastructure/services';
+import { ConsoleLoggerService, ILoggerService, DatabaseService, AccountService, SystemService, PrismaService, PrismaAccountService } from '@/infrastructure/services';
 import { IDatabaseService } from '@/shared/types';
 import { HealthController, WelcomeController, DatabaseController, AccountController, MigrationController } from '@/presentation/controllers';
 import { ErrorMiddleware } from '@/presentation/middlewares';
@@ -26,7 +26,8 @@ export class Container {
     // Infrastructure
     this.services.set('logger', new ConsoleLoggerService());
     this.services.set('database', new DatabaseService());
-    this.services.set('accountRepository', new AccountService(this.get<IDatabaseService>('database')));
+    this.services.set('prisma', PrismaService.getInstance());
+    this.services.set('accountRepository', new PrismaAccountService(this.get('prisma')));
     this.services.set('systemRepository', new SystemService());
 
     // Use Cases
