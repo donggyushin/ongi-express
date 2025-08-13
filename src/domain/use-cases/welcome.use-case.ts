@@ -1,15 +1,11 @@
-import { WelcomeResponse } from '@/shared/types';
+import { WelcomeMessage } from '@/domain/entities';
 
 export interface IWelcomeUseCase {
-  getWelcomeMessage(): WelcomeResponse;
+  getWelcomeMessage(): WelcomeMessage;
 }
 
 export class WelcomeUseCase implements IWelcomeUseCase {
-  getWelcomeMessage(): WelcomeResponse {
-    return {
-      message: 'Welcome to Ongi API',
-      status: 'Running',
-      timestamp: new Date().toISOString()
-    };
+  getWelcomeMessage(): WelcomeMessage {
+    return new WelcomeMessage('Welcome to Ongi API', 'Running');
   }
 }

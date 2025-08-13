@@ -1,6 +1,6 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase } from '@/domain/use-cases';
-import { IAccountRepository } from '@/domain/repositories';
-import { ConsoleLoggerService, ILoggerService, DatabaseService, AccountService } from '@/infrastructure/services';
+import { IAccountRepository, ISystemRepository } from '@/domain/repositories';
+import { ConsoleLoggerService, ILoggerService, DatabaseService, AccountService, SystemService } from '@/infrastructure/services';
 import { IDatabaseService } from '@/shared/types';
 import { HealthController, WelcomeController, DatabaseController, AccountController, MigrationController } from '@/presentation/controllers';
 import { ErrorMiddleware } from '@/presentation/middlewares';
@@ -27,9 +27,10 @@ export class Container {
     this.services.set('logger', new ConsoleLoggerService());
     this.services.set('database', new DatabaseService());
     this.services.set('accountRepository', new AccountService(this.get<IDatabaseService>('database')));
+    this.services.set('systemRepository', new SystemService());
 
     // Use Cases
-    this.services.set('healthUseCase', new HealthUseCase());
+    this.services.set('healthUseCase', new HealthUseCase(this.get<ISystemRepository>('systemRepository')));
     this.services.set('welcomeUseCase', new WelcomeUseCase());
     this.services.set('createAccountUseCase', new CreateAccountUseCase(this.get<IAccountRepository>('accountRepository')));
 
