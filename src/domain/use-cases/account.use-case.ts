@@ -1,5 +1,5 @@
 import { Account, AccountType } from '@/domain/entities';
-import { IAccountRepository } from '@/shared/types';
+import { IAccountRepository } from '@/domain/repositories';
 
 export interface ICreateAccountUseCase {
   execute(id: string, type: AccountType): Promise<Account>;

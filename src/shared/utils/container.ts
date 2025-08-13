@@ -1,6 +1,7 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase } from '@/domain/use-cases';
+import { IAccountRepository } from '@/domain/repositories';
 import { ConsoleLoggerService, ILoggerService, DatabaseService, AccountService } from '@/infrastructure/services';
-import { IDatabaseService, IAccountRepository } from '@/shared/types';
+import { IDatabaseService } from '@/shared/types';
 import { HealthController, WelcomeController, DatabaseController, AccountController, MigrationController } from '@/presentation/controllers';
 import { ErrorMiddleware } from '@/presentation/middlewares';
 import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, MigrationRoutes } from '@/presentation/routes';

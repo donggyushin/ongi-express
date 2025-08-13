@@ -1,5 +1,6 @@
 import { Account, AccountType } from '@/domain/entities';
-import { IAccountRepository, IDatabaseService } from '@/shared/types';
+import { IAccountRepository } from '@/domain/repositories';
+import { IDatabaseService } from '@/shared/types';
 
 interface AccountRow {
   id: string;
