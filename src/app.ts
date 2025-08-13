@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 
 import { Container } from '@/shared/utils';
 import { ErrorMiddleware } from '@/presentation/middlewares';
-import { HealthRoutes, WelcomeRoutes, DatabaseRoutes } from '@/presentation/routes';
+import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, MigrationRoutes } from '@/presentation/routes';
 
 dotenv.config();
 
@@ -32,10 +32,14 @@ class App {
     const welcomeRoutes = this.container.get<WelcomeRoutes>('welcomeRoutes');
     const healthRoutes = this.container.get<HealthRoutes>('healthRoutes');
     const databaseRoutes = this.container.get<DatabaseRoutes>('databaseRoutes');
+    const accountRoutes = this.container.get<AccountRoutes>('accountRoutes');
+    const migrationRoutes = this.container.get<MigrationRoutes>('migrationRoutes');
 
     this.app.use('/', welcomeRoutes.getRouter());
     this.app.use('/health', healthRoutes.getRouter());
     this.app.use('/database', databaseRoutes.getRouter());
+    this.app.use('/accounts', accountRoutes.getRouter());
+    this.app.use('/migrations', migrationRoutes.getRouter());
   }
 
   private initializeErrorHandling(): void {
