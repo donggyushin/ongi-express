@@ -1,6 +1,6 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase } from '@/domain/use-cases';
-import { IAccountRepository, ISystemRepository } from '@/domain/repositories';
-import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService } from '@/infrastructure/services';
+import { IAccountRepository, ISystemRepository, IJwtRepository } from '@/domain/repositories';
+import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService } from '@/infrastructure/services';
 import { IDatabaseService } from '@/shared/types';
 import { HealthController, WelcomeController, DatabaseController, AccountController } from '@/presentation/controllers';
 import { ErrorMiddleware } from '@/presentation/middlewares';
@@ -29,11 +29,15 @@ export class Container {
     this.services.set('prisma', PrismaService.getInstance());
     this.services.set('accountRepository', new PrismaAccountService(this.get('prisma')));
     this.services.set('systemRepository', new SystemService());
+    this.services.set('jwtRepository', new JwtService());
 
     // Use Cases
     this.services.set('healthUseCase', new HealthUseCase(this.get<ISystemRepository>('systemRepository')));
     this.services.set('welcomeUseCase', new WelcomeUseCase());
-    this.services.set('createAccountUseCase', new CreateAccountUseCase(this.get<IAccountRepository>('accountRepository')));
+    this.services.set('createAccountUseCase', new CreateAccountUseCase(
+      this.get<IAccountRepository>('accountRepository'),
+      this.get<IJwtRepository>('jwtRepository')
+    ));
 
     // Controllers
     this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));

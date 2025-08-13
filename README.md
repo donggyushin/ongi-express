@@ -78,39 +78,6 @@ All API responses follow a consistent format:
 ### Database
 - `GET /database/test` - Database connection status and health check
 
-### Accounts
-- `POST /accounts` - Create a new user account
-
-#### Account Creation
-```bash
-POST /accounts
-Content-Type: application/json
-
-{
-  "id": "apple_user_123",
-  "type": "apple"
-}
-```
-
-**Supported Account Types:**
-- `apple` - Apple Sign-In
-- `email` - Email/Password
-- `kakao` - Kakao Login
-- `gmail` - Google/Gmail Login
-
-**Response:**
-```json
-{
-  "success": true,
-  "data": {
-    "id": "apple_user_123",
-    "type": "apple",
-    "createdAt": "2025-08-13T04:45:39.400Z"
-  },
-  "message": "Account created successfully"
-}
-```
-
 ### Main
 - `GET /` - Welcome message and server info
 
