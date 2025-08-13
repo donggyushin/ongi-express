@@ -3,6 +3,7 @@ import multer from 'multer';
 import { IProfileUseCase } from '@/domain/use-cases';
 import { ApiResponse } from '@/shared/types/response';
 import { Profile } from '@/domain/entities';
+import { AuthenticatedRequest } from '../middlewares';
 
 // Configure multer for memory storage
 const storage = multer.memoryStorage();
@@ -27,9 +28,9 @@ export class ProfileController {
   // Multer middleware for single image upload
   public uploadMiddleware = upload.single('profileImage');
 
-  public uploadProfileImage = async (req: Request, res: Response): Promise<void> => {
+  public uploadProfileImage = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const { accountId } = req.params;
+      const accountId = req.userId;
       const file = req.file;
 
       if (!file) {
@@ -44,9 +45,9 @@ export class ProfileController {
       if (!accountId) {
         const response: ApiResponse<null> = {
           success: false,
-          error: 'Account ID is required'
+          error: 'Authentication required'
         };
-        res.status(400).json(response);
+        res.status(401).json(response);
         return;
       }
 
@@ -76,16 +77,16 @@ export class ProfileController {
     }
   };
 
-  public getProfile = async (req: Request, res: Response): Promise<void> => {
+  public getProfile = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const { accountId } = req.params;
+      const accountId = req.userId;
 
       if (!accountId) {
         const response: ApiResponse<null> = {
           success: false,
-          error: 'Account ID is required'
+          error: 'Authentication required'
         };
-        res.status(400).json(response);
+        res.status(401).json(response);
         return;
       }
 

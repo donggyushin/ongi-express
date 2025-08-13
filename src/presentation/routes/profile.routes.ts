@@ -1,5 +1,6 @@
 import { Router } from 'express';
 import { ProfileController } from '../controllers';
+import { AuthMiddleware } from '../middlewares';
 
 export class ProfileRoutes {
   public router: Router;
@@ -10,12 +11,13 @@ export class ProfileRoutes {
   }
 
   private initializeRoutes(): void {
-    // GET /profiles/:accountId - Get user profile
-    this.router.get('/:accountId', this.profileController.getProfile);
+    // GET /profiles/me - Get current user profile
+    this.router.get('/me', AuthMiddleware.verifyToken, this.profileController.getProfile);
 
-    // POST /profiles/:accountId/upload-image - Upload profile image
+    // POST /profiles/me/upload-image - Upload profile image for current user
     this.router.post(
-      '/:accountId/upload-image',
+      '/me/upload-image',
+      AuthMiddleware.verifyToken,
       this.profileController.uploadMiddleware,
       this.profileController.uploadProfileImage
     );
