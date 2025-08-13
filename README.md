@@ -1,6 +1,8 @@
 # Ongi Express Server
 
-Express.js backend server for ongi service built with TypeScript and Clean Architecture principles
+Express.js backend server for ongi service built with TypeScript and Clean Architecture principles.
+
+**🚂 Deployed on [Railway](https://railway.app/)** with PostgreSQL database integration.
 
 ## 🚀 Getting Started
 
@@ -29,7 +31,7 @@ npm install
 cp .env.example .env
 ```
 
-4. Edit `.env` file with your configuration
+4. Edit `.env` file with your configuration (including Railway PostgreSQL connection string)
 
 ### Running the Server
 
@@ -64,6 +66,9 @@ All API responses follow a consistent format:
 ### Health Check
 - `GET /health` - Server health status with uptime information
 
+### Database
+- `GET /database/test` - Database connection status and health check
+
 ### Main
 - `GET /` - Welcome message and server info
 
@@ -71,6 +76,7 @@ All API responses follow a consistent format:
 
 - **TypeScript** - Type-safe JavaScript
 - **Express.js 4.x** - Web framework (stable version)
+- **PostgreSQL** - Relational database hosted on Railway
 - **Clean Architecture** - Layered architecture with dependency inversion
 - **Dependency Injection** - Custom DI container for service management
 - **Helmet** - Security middleware
@@ -97,11 +103,15 @@ ongi-express/
 │   │       ├── welcome.use-case.ts
 │   │       └── index.ts
 │   ├── infrastructure/                 # External services layer
+│   │   ├── config/                     # Configuration files
+│   │   │   └── database.config.ts
 │   │   └── services/                   # Service implementations
+│   │       ├── database.service.ts
 │   │       ├── logger.service.ts
 │   │       └── index.ts
 │   ├── presentation/                   # API layer
 │   │   ├── controllers/                # HTTP request handlers
+│   │   │   ├── database.controller.ts
 │   │   │   ├── health.controller.ts
 │   │   │   ├── welcome.controller.ts
 │   │   │   └── index.ts
@@ -109,11 +119,13 @@ ongi-express/
 │   │   │   ├── error.middleware.ts
 │   │   │   └── index.ts
 │   │   └── routes/                     # API endpoint definitions
+│   │       ├── database.routes.ts
 │   │       ├── health.routes.ts
 │   │       ├── welcome.routes.ts
 │   │       └── index.ts
 │   └── shared/                         # Common utilities
 │       ├── types/                      # Shared type definitions
+│       │   ├── database.ts
 │       │   ├── response.ts
 │       │   └── index.ts
 │       └── utils/                      # Utilities and DI container
@@ -151,6 +163,26 @@ Dependencies only flow inward: Presentation → Domain ← Infrastructure ← Sh
 |----------|-------------|---------|
 | `PORT` | Server port | `3000` |
 | `NODE_ENV` | Environment mode (affects error verbosity) | `development` |
+| `DATABASE_URL` | PostgreSQL connection string from Railway | Required |
+| `JWT_SECRET` | Secret key for JWT tokens | `your-secret-key-here` |
+| `JWT_EXPIRES_IN` | JWT token expiration time | `7d` |
+| `API_KEY` | API key for external services | Optional |
+
+## 🚂 Railway Deployment
+
+This project is configured for deployment on Railway with PostgreSQL integration.
+
+### Deployment Features
+- **Automatic Builds**: Railway automatically builds and deploys from your Git repository
+- **PostgreSQL Database**: Managed PostgreSQL database with automatic connection string generation
+- **Environment Variables**: Securely managed through Railway dashboard
+- **SSL Support**: Railway provides HTTPS endpoints by default
+
+### Railway Setup
+1. Connect your GitHub repository to Railway
+2. Create a PostgreSQL database service
+3. Set environment variables in Railway dashboard
+4. Deploy automatically on Git push
 
 ## ⚠️ Known Issues & Compatibility
 

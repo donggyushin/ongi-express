@@ -1,8 +1,9 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase } from '@/domain/use-cases';
-import { ConsoleLoggerService, ILoggerService } from '@/infrastructure/services';
-import { HealthController, WelcomeController } from '@/presentation/controllers';
+import { ConsoleLoggerService, ILoggerService, DatabaseService } from '@/infrastructure/services';
+import { IDatabaseService } from '@/shared/types';
+import { HealthController, WelcomeController, DatabaseController } from '@/presentation/controllers';
 import { ErrorMiddleware } from '@/presentation/middlewares';
-import { HealthRoutes, WelcomeRoutes } from '@/presentation/routes';
+import { HealthRoutes, WelcomeRoutes, DatabaseRoutes } from '@/presentation/routes';
 
 export class Container {
   private static instance: Container;
@@ -23,6 +24,7 @@ export class Container {
   private registerServices(): void {
     // Infrastructure
     this.services.set('logger', new ConsoleLoggerService());
+    this.services.set('database', new DatabaseService());
 
     // Use Cases
     this.services.set('healthUseCase', new HealthUseCase());
@@ -31,6 +33,7 @@ export class Container {
     // Controllers
     this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));
     this.services.set('welcomeController', new WelcomeController(this.get<IWelcomeUseCase>('welcomeUseCase')));
+    this.services.set('databaseController', new DatabaseController(this.get<IDatabaseService>('database')));
 
     // Middlewares
     this.services.set('errorMiddleware', new ErrorMiddleware(this.get<ILoggerService>('logger')));
@@ -38,6 +41,7 @@ export class Container {
     // Routes
     this.services.set('healthRoutes', new HealthRoutes(this.get<HealthController>('healthController')));
     this.services.set('welcomeRoutes', new WelcomeRoutes(this.get<WelcomeController>('welcomeController')));
+    this.services.set('databaseRoutes', new DatabaseRoutes(this.get<DatabaseController>('databaseController')));
   }
 
   get<T>(serviceName: string): T {

@@ -40,6 +40,7 @@ This Express.js application follows Clean Architecture principles with strict la
 - No dependencies on external frameworks or infrastructure
 
 **Infrastructure Layer (`src/infrastructure/`)**
+- **Config**: Configuration classes (e.g., `DatabaseConfig` for PostgreSQL connection pooling)
 - **Services**: External service implementations (logging, databases, APIs)
 - Implements interfaces defined in domain layer
 
@@ -71,6 +72,13 @@ All API responses follow the `ApiResponse<T>` interface:
 - Centralized 404 handling
 - All errors are logged via `ILoggerService`
 
+**Database Integration**
+- PostgreSQL database hosted on Railway
+- Connection pooling via `DatabaseConfig` singleton
+- Database service (`IDatabaseService`) for query execution
+- Health check endpoint for database connectivity testing
+- TypeScript-safe query execution with `QueryResultRow` constraints
+
 **TypeScript Path Mapping**
 - `@/*` maps to `src/*`
 - Layer-specific aliases: `@/domain/*`, `@/infrastructure/*`, `@/presentation/*`, `@/shared/*`
@@ -83,11 +91,45 @@ All API responses follow the `ApiResponse<T>` interface:
 4. **Register in Container**: Add all new services to the DI container
 5. **Wire in App**: Register routes in `App.initializeRoutes()`
 
+### Database Service Usage
+
+**Accessing Database Service**
+```typescript
+// In use cases or controllers, get from DI container
+const databaseService = this.container.get<IDatabaseService>('database');
+
+// Execute queries with type safety
+const result = await databaseService.query<UserRow>('SELECT * FROM users WHERE id = $1', [userId]);
+
+// Health check
+const isHealthy = await databaseService.healthCheck();
+```
+
+**Database Patterns**
+- Use parameterized queries to prevent SQL injection
+- Implement database operations in use cases, not controllers
+- Use TypeScript interfaces for query result types
+- Handle database errors gracefully with try-catch blocks
+- Use connection pooling via `DatabaseConfig` singleton
+
 ### Environment Configuration
 
 - Environment variables loaded via `dotenv`
 - Default PORT: 3000
 - NODE_ENV affects error message verbosity
+- DATABASE_URL: PostgreSQL connection string (required for database operations)
+- JWT_SECRET: Secret key for JWT tokens
+- JWT_EXPIRES_IN: JWT token expiration time
+- API_KEY: Optional API key for external services
+
+### Railway Deployment
+
+This application is deployed on Railway with the following setup:
+- **Database**: Managed PostgreSQL with automatic connection string provisioning
+- **Environment Variables**: Managed through Railway dashboard
+- **Auto-deployment**: Triggered on Git push to main branch
+- **SSL**: Automatic HTTPS endpoints
+- **Health Checks**: Use `/health` and `/database/test` endpoints for monitoring
 
 ### Version Compatibility Notes
 
@@ -102,3 +144,16 @@ All API responses follow the `ApiResponse<T>` interface:
 **Troubleshooting Common Issues**:
 - `TypeError: Missing parameter name`: Usually indicates Express 5 + path-to-regexp compatibility issue
 - Solution: Downgrade to Express 4.x or wait for Express 5 stable release
+
+### API Endpoints
+
+**Core Endpoints**
+- `GET /` - Welcome message and server info
+- `GET /health` - Application health status with uptime
+- `GET /database/test` - Database connectivity test and health check
+
+**Endpoint Patterns**
+- All responses follow `ApiResponse<T>` interface
+- Health checks return boolean status with descriptive messages
+- Error responses include both `error` and `message` fields
+- Use RESTful conventions for new endpoints
