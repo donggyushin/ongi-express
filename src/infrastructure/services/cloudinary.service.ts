@@ -23,10 +23,7 @@ export class CloudinaryService implements IImageRepository {
           {
             folder,
             public_id: fileName,
-            resource_type: 'image',
-            transformation: [
-              { width: 400, height: 400, crop: 'fill', quality: 'auto' }
-            ]
+            resource_type: 'image'
           },
           (error, result: UploadApiResponse | undefined) => {
             if (error) {
