@@ -1,11 +1,15 @@
 import { HealthStatus } from '@/domain/entities';
+import { ISystemRepository } from '@/domain/repositories';
 
 export interface IHealthUseCase {
   getHealthStatus(): HealthStatus;
 }
 
 export class HealthUseCase implements IHealthUseCase {
+  constructor(private systemRepository: ISystemRepository) {}
+
   getHealthStatus(): HealthStatus {
-    return new HealthStatus('OK', process.uptime());
+    const uptime = this.systemRepository.getUptime();
+    return new HealthStatus('OK', uptime);
   }
 }

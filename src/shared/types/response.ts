@@ -16,3 +16,14 @@ export interface WelcomeResponse {
   status: string;
   timestamp: string;
 }
+
+export interface CreateAccountRequest {
+  id: string;
+  type: 'email' | 'apple' | 'kakao' | 'gmail';
+}
+
+export interface AccountResponse {
+  id: string;
+  type: string;
+  createdAt: string;
+}

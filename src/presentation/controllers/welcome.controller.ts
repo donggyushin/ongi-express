@@ -10,7 +10,7 @@ export class WelcomeController {
       const welcomeMessage = this.welcomeUseCase.getWelcomeMessage();
       const response: ApiResponse<WelcomeResponse> = {
         success: true,
-        data: welcomeMessage
+        data: welcomeMessage.toJSON()
       };
       
       res.status(200).json(response);
