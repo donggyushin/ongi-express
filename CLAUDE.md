@@ -41,7 +41,7 @@ This Express.js application follows Clean Architecture principles with strict la
 - When adding new services: register them in the container and inject dependencies
 
 **Domain Layer (`src/domain/`)**
-- **Entities**: Pure business objects (e.g., `HealthStatus`, `Account`)
+- **Entities**: Pure business objects (e.g., `HealthStatus`, `Account`, `Profile`, `QnA`)
 - **Repositories**: Interface contracts for data access (e.g., `IAccountRepository`)
 - **Use Cases**: Business logic implementation with interfaces
 - No dependencies on external frameworks or infrastructure
@@ -179,6 +179,7 @@ This application is deployed on Railway with the following setup:
 
 **Account Management**
 - `POST /accounts` - Create a new user account (supports apple, email, kakao, gmail types)
+- Automatically creates associated Profile with default nickname (random CUID)
 - Returns existing account if duplicate creation attempted
 - Validates account type enum and required fields
 
@@ -207,11 +208,58 @@ model Account {
   @@map("accounts")
 }
 
+model Profile {
+  id           String    @id @default(cuid())
+  accountId    String    @unique @map("account_id")
+  nickname     String    @unique @db.VarChar(50) @default(cuid())
+  profileImage String?   @map("profile_image")
+  images       String[]  @default([])
+  mbti         MBTIType?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  
+  qnas         QnA[]
+
+  @@map("profiles")
+}
+
+model QnA {
+  id        String   @id @default(cuid())
+  profileId String   @map("profile_id")
+  question  String   @db.VarChar(500)
+  answer    String   @db.VarChar(1500)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("qnas")
+}
+
 enum AccountType {
   email
   apple
   kakao
   gmail
+}
+
+enum MBTIType {
+  INTJ
+  INTP
+  ENTJ
+  ENTP
+  INFJ
+  INFP
+  ENFJ
+  ENFP
+  ISTJ
+  ISFJ
+  ESTJ
+  ESFJ
+  ISTP
+  ISFP
+  ESTP
+  ESFP
 }
 ```
 
@@ -228,3 +276,32 @@ enum AccountType {
 - Test migrations on development database first
 - Use `@@map()` to match existing table names
 - Define enums in schema for type safety
+
+### Entity Relationships and Business Logic
+
+**Account-Profile Relationship (One-to-One)**
+- Every Account must have exactly one Profile (required relationship)
+- Account creation automatically creates an associated Profile
+- Profile contains user-customizable data: nickname, images, MBTI type
+- Profile deletion cascades when Account is deleted
+
+**Profile-QnA Relationship (One-to-Many)**
+- Each Profile can have multiple QnA entries
+- QnA entries contain question (max 500 chars) and answer (max 1500 chars)
+- QnA entries are automatically deleted when Profile is deleted (cascade)
+
+**Entity Structure:**
+- **Account**: Core authentication entity with account type and creation timestamp
+- **Profile**: User profile data with nickname (unique, 50 chars max), profile image, image gallery, MBTI type
+- **QnA**: Question and answer pairs associated with user profiles
+
+**Default Values:**
+- Profile nickname: Auto-generated CUID (to be enhanced later)
+- Profile images: Empty array
+- Profile MBTI: Null (user can set later)
+- All IDs: Auto-generated CUIDs except Account.id (user-provided)
+
+**Business Rules:**
+- Account creation is atomic: both Account and Profile are created in a single transaction
+- Unique constraints: Profile.accountId, Profile.nickname
+- Account lookup includes full Profile and QnA data for complete user context

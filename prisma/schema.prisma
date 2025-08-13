@@ -22,9 +22,56 @@ model Account {
   @@map("accounts")
 }
 
+model Profile {
+  id           String    @id @default(cuid())
+  accountId    String    @unique @map("account_id")
+  nickname     String    @unique @db.VarChar(50) @default(cuid())
+  profileImage String?   @map("profile_image")
+  images       String[]  @default([])
+  mbti         MBTIType?
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
+  
+  qnas         QnA[]
+
+  @@map("profiles")
+}
+
+model QnA {
+  id        String   @id @default(cuid())
+  profileId String   @map("profile_id")
+  question  String   @db.VarChar(500)
+  answer    String   @db.VarChar(1500)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("qnas")
+}
+
 enum AccountType {
   email
   apple
   kakao
   gmail
+}
+
+enum MBTIType {
+  INTJ
+  INTP
+  ENTJ
+  ENTP
+  INFJ
+  INFP
+  ENFJ
+  ENFP
+  ISTJ
+  ISFJ
+  ESTJ
+  ESFJ
+  ISTP
+  ISFP
+  ESTP
+  ESFP
 }
