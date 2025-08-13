@@ -1,11 +1,13 @@
 import { Request, Response } from 'express';
-import { ICreateAccountUseCase, IRefreshTokenUseCase } from '@/domain/use-cases';
+import { ICreateAccountUseCase, IGetAccountUseCase, IRefreshTokenUseCase } from '@/domain/use-cases';
 import { AccountType } from '@/domain/entities';
 import { ApiResponse, CreateAccountRequest, AuthTokensResponse, RefreshTokenRequest } from '@/shared/types';
+import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
 
 export class AccountController {
   constructor(
     private readonly createAccountUseCase: ICreateAccountUseCase,
+    private readonly getAccountUseCase: IGetAccountUseCase,
     private readonly refreshTokenUseCase: IRefreshTokenUseCase
   ) {}
 
@@ -87,6 +89,46 @@ export class AccountController {
       const response: ApiResponse = {
         success: false,
         error: 'Failed to refresh token'
+      };
+      
+      res.status(500).json(response);
+    }
+  }
+
+  async getAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.userId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'User ID not found in token'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      const account = await this.getAccountUseCase.execute(req.userId);
+      
+      if (!account) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Account not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+      
+      const response: ApiResponse = {
+        success: true,
+        data: account,
+        message: 'Account retrieved successfully'
+      };
+      
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Get account error:', error);
+      const response: ApiResponse = {
+        success: false,
+        error: 'Failed to retrieve account'
       };
       
       res.status(500).json(response);

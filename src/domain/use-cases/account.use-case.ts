@@ -1,8 +1,12 @@
-import { AccountType, AuthTokens } from '@/domain/entities';
+import { Account, AccountType, AuthTokens } from '@/domain/entities';
 import { IAccountRepository, IJwtRepository } from '@/domain/repositories';
 
 export interface ICreateAccountUseCase {
   execute(id: string, type: AccountType): Promise<AuthTokens>;
+}
+
+export interface IGetAccountUseCase {
+  execute(id: string): Promise<Account | null>;
 }
 
 export class CreateAccountUseCase implements ICreateAccountUseCase {
@@ -22,5 +26,15 @@ export class CreateAccountUseCase implements ICreateAccountUseCase {
 
     // Generate and return tokens for the user
     return await this.jwtRepository.generateTokens(id);
+  }
+}
+
+export class GetAccountUseCase implements IGetAccountUseCase {
+  constructor(
+    private accountRepository: IAccountRepository
+  ) {}
+
+  async execute(id: string): Promise<Account | null> {
+    return await this.accountRepository.findById(id);
   }
 }
