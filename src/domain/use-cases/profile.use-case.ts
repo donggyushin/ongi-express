@@ -5,6 +5,7 @@ import { validateKoreanNickname } from '@/shared/utils';
 export interface IProfileUseCase {
   updateProfileImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   updateNickname(accountId: string, nickname: string): Promise<Profile>;
+  updateMbti(accountId: string, mbti: string): Promise<Profile>;
   getProfile(accountId: string): Promise<Profile | null>;
   addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
@@ -42,6 +43,31 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update nickname
     const updatedProfile = await this.profileRepository.updateNickname(accountId, nickname);
+    
+    return updatedProfile;
+  }
+
+  async updateMbti(accountId: string, mbti: string): Promise<Profile> {
+    // Validate MBTI type
+    const validMbtiTypes = [
+      'INTJ', 'INTP', 'ENTJ', 'ENTP',
+      'INFJ', 'INFP', 'ENFJ', 'ENFP', 
+      'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
+      'ISTP', 'ISFP', 'ESTP', 'ESFP'
+    ];
+    
+    if (!validMbtiTypes.includes(mbti.toUpperCase())) {
+      throw new Error('Invalid MBTI type. Must be one of: ' + validMbtiTypes.join(', '));
+    }
+
+    // Check if profile exists
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Update MBTI
+    const updatedProfile = await this.profileRepository.updateMbti(accountId, mbti.toUpperCase());
     
     return updatedProfile;
   }

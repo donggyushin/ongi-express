@@ -5,6 +5,7 @@ export interface IProfileRepository {
   findByAccountId(accountId: string): Promise<Profile | null>;
   updateProfileImage(accountId: string, image: Image): Promise<Profile>;
   updateNickname(accountId: string, nickname: string): Promise<Profile>;
+  updateMbti(accountId: string, mbti: string): Promise<Profile>;
   addImage(accountId: string, image: Image): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
   update(id: string, data: Partial<Profile>): Promise<Profile>;

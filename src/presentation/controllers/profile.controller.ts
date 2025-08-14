@@ -248,4 +248,45 @@ export class ProfileController {
       res.status(500).json(response);
     }
   };
+
+  public updateMbti = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { mbti } = req.body;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!mbti) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'MBTI type is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const updatedProfile = await this.profileUseCase.updateMbti(accountId, mbti);
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: updatedProfile,
+        message: 'MBTI updated successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update MBTI'
+      };
+      res.status(500).json(response);
+    }
+  };
 }
