@@ -66,6 +66,20 @@ export class PrismaProfileService implements IProfileRepository {
     return this.mapToProfileEntity(updatedProfile);
   }
 
+  async updateMbti(accountId: string, mbti: string): Promise<Profile> {
+    const updatedProfile = await this.prisma.profile.update({
+      where: { accountId },
+      data: { mbti: mbti as any },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      }
+    });
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
   async addImage(accountId: string, image: Image): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { accountId },
@@ -107,6 +121,118 @@ export class PrismaProfileService implements IProfileRepository {
     });
 
     // Then get the updated profile
+    const updatedProfile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      }
+    });
+
+    if (!updatedProfile) {
+      throw new Error('Profile not found');
+    }
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
+  async addQna(accountId: string, question: string, answer: string): Promise<Profile> {
+    // First, get the profile to find its ID
+    const profile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      select: { id: true }
+    });
+
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    // Create new QnA record
+    await this.prisma.qnA.create({
+      data: {
+        profileId: profile.id,
+        question: question,
+        answer: answer
+      }
+    });
+
+    // Get the updated profile with all relations
+    const updatedProfile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      }
+    });
+
+    if (!updatedProfile) {
+      throw new Error('Profile not found');
+    }
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
+  async removeQna(accountId: string, qnaId: string): Promise<Profile> {
+    // First, get the profile to verify ownership
+    const profile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      select: { id: true }
+    });
+
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    // Delete the Q&A record (only if it belongs to this profile)
+    await this.prisma.qnA.deleteMany({
+      where: {
+        id: qnaId,
+        profileId: profile.id
+      }
+    });
+
+    // Get the updated profile with all relations
+    const updatedProfile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      }
+    });
+
+    if (!updatedProfile) {
+      throw new Error('Profile not found');
+    }
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
+  async updateQna(accountId: string, qnaId: string, answer: string): Promise<Profile> {
+    // First, get the profile to verify ownership
+    const profile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      select: { id: true }
+    });
+
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    // Update the Q&A record (only if it belongs to this profile)
+    await this.prisma.qnA.updateMany({
+      where: {
+        id: qnaId,
+        profileId: profile.id
+      },
+      data: {
+        answer: answer
+      }
+    });
+
+    // Get the updated profile with all relations
     const updatedProfile = await this.prisma.profile.findUnique({
       where: { accountId },
       include: {

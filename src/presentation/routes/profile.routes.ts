@@ -25,6 +25,12 @@ export class ProfileRoutes {
     // PATCH /profiles/nickname - Update current user nickname
     this.router.patch('/nickname', AuthMiddleware.verifyToken, this.profileController.updateNickname);
 
+    // POST /profiles/me/mbti - Update current user MBTI type
+    this.router.post('/me/mbti', AuthMiddleware.verifyToken, this.profileController.updateMbti);
+
+    // POST /profiles/me/qna - Add Q&A to profile
+    this.router.post('/me/qna', AuthMiddleware.verifyToken, this.profileController.addQna);
+
     // POST /profiles/me/add-image - Add image to profile gallery
     this.router.post(
       '/me/add-image',
@@ -35,6 +41,12 @@ export class ProfileRoutes {
 
     // DELETE /profiles/me/images - Remove image from profile gallery (publicId in request body)
     this.router.delete('/me/images', AuthMiddleware.verifyToken, this.profileController.removeImage);
+
+    // DELETE /profiles/me/qna - Remove Q&A from profile
+    this.router.delete('/me/qna', AuthMiddleware.verifyToken, this.profileController.removeQna);
+
+    // PATCH /profiles/me/qna - Update Q&A answer
+    this.router.patch('/me/qna', AuthMiddleware.verifyToken, this.profileController.updateQna);
   }
 
   getRouter(): Router {
