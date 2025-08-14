@@ -380,4 +380,54 @@ export class ProfileController {
       res.status(500).json(response);
     }
   };
+
+  public updateQna = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { qnaId, answer } = req.body;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!qnaId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Q&A ID is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      if (!answer) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Answer is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const updatedProfile = await this.profileUseCase.updateQna(accountId, qnaId, answer);
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: updatedProfile,
+        message: 'Q&A answer updated successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update Q&A answer'
+      };
+      res.status(500).json(response);
+    }
+  };
 }

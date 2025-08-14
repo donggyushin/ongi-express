@@ -210,6 +210,45 @@ export class PrismaProfileService implements IProfileRepository {
     return this.mapToProfileEntity(updatedProfile);
   }
 
+  async updateQna(accountId: string, qnaId: string, answer: string): Promise<Profile> {
+    // First, get the profile to verify ownership
+    const profile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      select: { id: true }
+    });
+
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    // Update the Q&A record (only if it belongs to this profile)
+    await this.prisma.qnA.updateMany({
+      where: {
+        id: qnaId,
+        profileId: profile.id
+      },
+      data: {
+        answer: answer
+      }
+    });
+
+    // Get the updated profile with all relations
+    const updatedProfile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      }
+    });
+
+    if (!updatedProfile) {
+      throw new Error('Profile not found');
+    }
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
   async update(id: string, data: any): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },

@@ -44,6 +44,9 @@ export class ProfileRoutes {
 
     // DELETE /profiles/me/qna - Remove Q&A from profile
     this.router.delete('/me/qna', AuthMiddleware.verifyToken, this.profileController.removeQna);
+
+    // PATCH /profiles/me/qna - Update Q&A answer
+    this.router.patch('/me/qna', AuthMiddleware.verifyToken, this.profileController.updateQna);
   }
 
   getRouter(): Router {

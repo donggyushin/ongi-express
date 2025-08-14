@@ -11,6 +11,7 @@ export interface IProfileUseCase {
   removeImage(accountId: string, publicId: string): Promise<Profile>;
   addQna(accountId: string, question: string, answer: string): Promise<Profile>;
   removeQna(accountId: string, qnaId: string): Promise<Profile>;
+  updateQna(accountId: string, qnaId: string, answer: string): Promise<Profile>;
 }
 
 export class ProfileUseCase implements IProfileUseCase {
@@ -176,6 +177,38 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Remove Q&A from profile
     const updatedProfile = await this.profileRepository.removeQna(accountId, qnaId);
+    
+    return updatedProfile;
+  }
+
+  async updateQna(accountId: string, qnaId: string, answer: string): Promise<Profile> {
+    // Validate input
+    if (!qnaId || qnaId.trim().length === 0) {
+      throw new Error('Q&A ID is required');
+    }
+    if (!answer || answer.trim().length === 0) {
+      throw new Error('Answer is required');
+    }
+
+    // Validate answer length (based on schema constraints)
+    if (answer.length > 1500) {
+      throw new Error('Answer must be 1500 characters or less');
+    }
+
+    // Check if profile exists
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Check if Q&A exists in profile and belongs to this user
+    const qnaExists = existingProfile.qnas.some(qna => qna.id === qnaId);
+    if (!qnaExists) {
+      throw new Error('Q&A not found in profile');
+    }
+
+    // Update Q&A answer
+    const updatedProfile = await this.profileRepository.updateQna(accountId, qnaId, answer.trim());
     
     return updatedProfile;
   }
