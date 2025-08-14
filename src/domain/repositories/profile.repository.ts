@@ -9,5 +9,6 @@ export interface IProfileRepository {
   addImage(accountId: string, image: Image): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
   addQna(accountId: string, question: string, answer: string): Promise<Profile>;
+  removeQna(accountId: string, qnaId: string): Promise<Profile>;
   update(id: string, data: Partial<Profile>): Promise<Profile>;
 }

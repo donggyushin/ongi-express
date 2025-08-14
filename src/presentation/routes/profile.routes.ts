@@ -41,6 +41,9 @@ export class ProfileRoutes {
 
     // DELETE /profiles/me/images - Remove image from profile gallery (publicId in request body)
     this.router.delete('/me/images', AuthMiddleware.verifyToken, this.profileController.removeImage);
+
+    // DELETE /profiles/me/qna - Remove Q&A from profile
+    this.router.delete('/me/qna', AuthMiddleware.verifyToken, this.profileController.removeQna);
   }
 
   getRouter(): Router {

@@ -10,6 +10,7 @@ export interface IProfileUseCase {
   addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
   addQna(accountId: string, question: string, answer: string): Promise<Profile>;
+  removeQna(accountId: string, qnaId: string): Promise<Profile>;
 }
 
 export class ProfileUseCase implements IProfileUseCase {
@@ -151,6 +152,30 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Add Q&A to profile
     const updatedProfile = await this.profileRepository.addQna(accountId, question.trim(), answer.trim());
+    
+    return updatedProfile;
+  }
+
+  async removeQna(accountId: string, qnaId: string): Promise<Profile> {
+    // Validate input
+    if (!qnaId || qnaId.trim().length === 0) {
+      throw new Error('Q&A ID is required');
+    }
+
+    // Check if profile exists
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Check if Q&A exists in profile and belongs to this user
+    const qnaExists = existingProfile.qnas.some(qna => qna.id === qnaId);
+    if (!qnaExists) {
+      throw new Error('Q&A not found in profile');
+    }
+
+    // Remove Q&A from profile
+    const updatedProfile = await this.profileRepository.removeQna(accountId, qnaId);
     
     return updatedProfile;
   }

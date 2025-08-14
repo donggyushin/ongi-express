@@ -339,4 +339,45 @@ export class ProfileController {
       res.status(500).json(response);
     }
   };
+
+  public removeQna = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { qnaId } = req.body;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!qnaId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Q&A ID is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const updatedProfile = await this.profileUseCase.removeQna(accountId, qnaId);
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: updatedProfile,
+        message: 'Q&A removed successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to remove Q&A'
+      };
+      res.status(500).json(response);
+    }
+  };
 }
