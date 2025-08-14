@@ -39,7 +39,7 @@ class App {
     this.app.use('/health', healthRoutes.getRouter());
     this.app.use('/database', databaseRoutes.getRouter());
     this.app.use('/accounts', accountRoutes.getRouter());
-    this.app.use('/profiles', profileRoutes.router);
+    this.app.use('/profiles', profileRoutes.getRouter());
   }
 
   private initializeErrorHandling(): void {

@@ -87,6 +87,42 @@ export class PrismaProfileService implements IProfileRepository {
     return this.mapToProfileEntity(updatedProfile);
   }
 
+  async removeImage(accountId: string, publicId: string): Promise<Profile> {
+    // First, get the profile to find its ID
+    const profile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      select: { id: true }
+    });
+
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    // Delete the image record using profile.id
+    await this.prisma.image.deleteMany({
+      where: {
+        publicId: publicId,
+        profileId: profile.id
+      }
+    });
+
+    // Then get the updated profile
+    const updatedProfile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      }
+    });
+
+    if (!updatedProfile) {
+      throw new Error('Profile not found');
+    }
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
   async update(id: string, data: any): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },

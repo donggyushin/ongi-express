@@ -206,4 +206,46 @@ export class ProfileController {
       res.status(500).json(response);
     }
   };
+
+  public removeImage = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { publicId } = req.body;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!publicId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Public ID is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // Remove image from profile gallery
+      const updatedProfile = await this.profileUseCase.removeImage(accountId, publicId);
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: updatedProfile,
+        message: 'Image removed from profile gallery successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to remove image'
+      };
+      res.status(500).json(response);
+    }
+  };
 }

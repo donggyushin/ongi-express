@@ -3,7 +3,7 @@ import { ProfileController } from '../controllers';
 import { AuthMiddleware } from '../middlewares';
 
 export class ProfileRoutes {
-  public router: Router;
+  private router: Router;
 
   constructor(private profileController: ProfileController) {
     this.router = Router();
@@ -32,5 +32,12 @@ export class ProfileRoutes {
       this.profileController.addImageMiddleware,
       this.profileController.addImage
     );
+
+    // DELETE /profiles/me/images - Remove image from profile gallery (publicId in request body)
+    this.router.delete('/me/images', AuthMiddleware.verifyToken, this.profileController.removeImage);
+  }
+
+  getRouter(): Router {
+    return this.router;
   }
 }
