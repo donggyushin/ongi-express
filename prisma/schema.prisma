@@ -27,8 +27,8 @@ model Profile {
   accountId    String    @unique @map("account_id")
   nickname     String    @db.VarChar(50)
   email        String?   @db.VarChar(255)
-  profileImage String?   @map("profile_image")
-  images       String[]  @default([])
+  profileImage Json?     @map("profile_image")
+  images       Json[]    @default([])
   mbti         MBTIType?
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")

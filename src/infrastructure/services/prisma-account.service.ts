@@ -1,4 +1,4 @@
-import { Account, AccountType, Profile, QnA } from '@/domain/entities';
+import { Account, AccountType, Profile, QnA, Image } from '@/domain/entities';
 import { IAccountRepository } from '@/domain/repositories';
 import { PrismaClient } from '@/generated/prisma';
 import { generateFriendlyNickname } from '@/shared/utils';
@@ -35,8 +35,11 @@ export class PrismaAccountService implements IAccountRepository {
         result.profile.accountId,
         result.profile.nickname,
         result.profile.email,
-        result.profile.profileImage,
-        result.profile.images,
+        result.profile.profileImage ? new Image(
+          (result.profile.profileImage as any).url,
+          (result.profile.profileImage as any).publicId
+        ) : null,
+        (result.profile.images as any[]).map((img: any) => new Image(img.url, img.publicId)),
         result.profile.mbti as any,
         result.profile.qnas.map(qna => new QnA(
           qna.id,
@@ -82,8 +85,11 @@ export class PrismaAccountService implements IAccountRepository {
         profile.accountId,
         profile.nickname,
         profile.email,
-        profile.profileImage,
-        profile.images,
+        profile.profileImage ? new Image(
+          (profile.profileImage as any).url,
+          (profile.profileImage as any).publicId
+        ) : null,
+        (profile.images as any[]).map((img: any) => new Image(img.url, img.publicId)),
         profile.mbti as any,
         profile.qnas.map(qna => new QnA(
           qna.id,

@@ -4,3 +4,4 @@ export * from './welcome.entity';
 export * from './auth-tokens.entity';
 export * from './profile.entity';
 export * from './qna.entity';
+export * from './image.entity';
