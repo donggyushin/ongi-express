@@ -23,7 +23,9 @@ export class PrismaAccountService implements IAccountRepository {
             nickname: generateFriendlyNickname(),
           },
           include: {
-            qnas: true
+            qnas: true,
+            profileImage: true,
+            images: true
           }
         });
 
@@ -36,10 +38,10 @@ export class PrismaAccountService implements IAccountRepository {
         result.profile.nickname,
         result.profile.email,
         result.profile.profileImage ? new Image(
-          (result.profile.profileImage as any).url,
-          (result.profile.profileImage as any).publicId
+          result.profile.profileImage.url,
+          result.profile.profileImage.publicId
         ) : null,
-        (result.profile.images as any[]).map((img: any) => new Image(img.url, img.publicId)),
+        result.profile.images.map((img) => new Image(img.url, img.publicId)),
         result.profile.mbti as any,
         result.profile.qnas.map(qna => new QnA(
           qna.id,
@@ -72,7 +74,9 @@ export class PrismaAccountService implements IAccountRepository {
       const profile = await this.prisma.profile.findUnique({
         where: { accountId: id },
         include: {
-          qnas: true
+          qnas: true,
+          profileImage: true,
+          images: true
         }
       });
       
@@ -86,10 +90,10 @@ export class PrismaAccountService implements IAccountRepository {
         profile.nickname,
         profile.email,
         profile.profileImage ? new Image(
-          (profile.profileImage as any).url,
-          (profile.profileImage as any).publicId
+          profile.profileImage.url,
+          profile.profileImage.publicId
         ) : null,
-        (profile.images as any[]).map((img: any) => new Image(img.url, img.publicId)),
+        profile.images.map((img) => new Image(img.url, img.publicId)),
         profile.mbti as any,
         profile.qnas.map(qna => new QnA(
           qna.id,

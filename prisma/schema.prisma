@@ -22,13 +22,27 @@ model Account {
   @@map("accounts")
 }
 
+model Image {
+  id        String   @id @default(cuid())
+  url       String
+  publicId  String   @map("public_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  profileImageFor Profile? @relation("ProfileImage")
+  profileImagesFor Profile? @relation("ProfileImages", fields: [profileId], references: [id], onDelete: Cascade)
+  profileId       String?  @map("profile_id")
+
+  @@map("images")
+}
+
 model Profile {
   id           String    @id @default(cuid())
   accountId    String    @unique @map("account_id")
   nickname     String    @db.VarChar(50)
   email        String?   @db.VarChar(255)
-  profileImage Json?     @map("profile_image")
-  images       Json[]    @default([])
+  profileImage Image?    @relation("ProfileImage", fields: [profileImageId], references: [id])
+  profileImageId String? @unique @map("profile_image_id")
+  images       Image[]   @relation("ProfileImages")
   mbti         MBTIType?
   createdAt    DateTime  @default(now()) @map("created_at")
   updatedAt    DateTime  @updatedAt @map("updated_at")

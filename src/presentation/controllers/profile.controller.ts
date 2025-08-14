@@ -27,6 +27,7 @@ export class ProfileController {
 
   // Multer middleware for single image upload
   public uploadMiddleware = upload.single('profileImage');
+  public addImageMiddleware = upload.single('image');
 
   public uploadProfileImage = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
@@ -152,6 +153,55 @@ export class ProfileController {
       const response: ApiResponse<null> = {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to get profile'
+      };
+      res.status(500).json(response);
+    }
+  };
+
+  public addImage = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const file = req.file;
+
+      if (!file) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'No image file provided'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      // Generate unique filename
+      const fileName = `profile_gallery_${accountId}_${Date.now()}`;
+      
+      // Add image to profile gallery
+      const updatedProfile = await this.profileUseCase.addImage(
+        accountId,
+        file.buffer,
+        fileName
+      );
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: updatedProfile,
+        message: 'Image added to profile gallery successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to add image'
       };
       res.status(500).json(response);
     }

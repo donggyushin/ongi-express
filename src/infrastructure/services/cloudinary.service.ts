@@ -1,5 +1,5 @@
 import { v2 as cloudinary, UploadApiResponse } from 'cloudinary';
-import { IImageRepository } from '@/domain/repositories';
+import { IImageRepository, ImageData } from '@/domain/repositories';
 import { ILoggerService } from '@/infrastructure/services';
 
 export class CloudinaryService implements IImageRepository {
@@ -32,6 +32,37 @@ export class CloudinaryService implements IImageRepository {
             } else if (result) {
               this.logger.info(`Image uploaded successfully: ${result.secure_url}`);
               resolve(result.secure_url);
+            } else {
+              reject(new Error('Image upload failed: No result returned'));
+            }
+          }
+        ).end(file);
+      });
+    } catch (error) {
+      this.logger.error('Error uploading image to Cloudinary:', error instanceof Error ? error : new Error(String(error)));
+      throw new Error('Failed to upload image');
+    }
+  }
+
+  async uploadImageWithData(file: Buffer, fileName: string, folder: string = 'profile-images'): Promise<ImageData> {
+    try {
+      return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload_stream(
+          {
+            folder,
+            public_id: fileName,
+            resource_type: 'image'
+          },
+          (error, result: UploadApiResponse | undefined) => {
+            if (error) {
+              this.logger.error('Cloudinary upload error:', error);
+              reject(new Error(`Image upload failed: ${error.message}`));
+            } else if (result) {
+              this.logger.info(`Image uploaded successfully: ${result.secure_url}`);
+              resolve({
+                url: result.secure_url,
+                publicId: result.public_id
+              });
             } else {
               reject(new Error('Image upload failed: No result returned'));
             }

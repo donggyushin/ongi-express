@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@/generated/prisma';
 import { IProfileRepository } from '@/domain/repositories';
-import { Profile } from '@/domain/entities';
+import { Profile, Image, QnA } from '@/domain/entities';
 
 export class PrismaProfileService implements IProfileRepository {
   constructor(private prisma: PrismaClient) {}
@@ -9,34 +9,47 @@ export class PrismaProfileService implements IProfileRepository {
     const profile = await this.prisma.profile.findUnique({
       where: { id },
       include: {
-        qnas: true
+        qnas: true,
+        profileImage: true,
+        images: true
       }
     });
 
-    return profile as Profile | null;
+    return profile ? this.mapToProfileEntity(profile) : null;
   }
 
   async findByAccountId(accountId: string): Promise<Profile | null> {
     const profile = await this.prisma.profile.findUnique({
       where: { accountId },
       include: {
-        qnas: true
+        qnas: true,
+        profileImage: true,
+        images: true
       }
     });
 
-    return profile as Profile | null;
+    return profile ? this.mapToProfileEntity(profile) : null;
   }
 
-  async updateProfileImage(accountId: string, imageUrl: string): Promise<Profile> {
+  async updateProfileImage(accountId: string, image: Image): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { accountId },
-      data: { profileImage: imageUrl },
+      data: {
+        profileImage: {
+          create: {
+            url: image.url,
+            publicId: image.publicId
+          }
+        }
+      },
       include: {
-        qnas: true
+        qnas: true,
+        profileImage: true,
+        images: true
       }
     });
 
-    return updatedProfile as Profile;
+    return this.mapToProfileEntity(updatedProfile);
   }
 
   async updateNickname(accountId: string, nickname: string): Promise<Profile> {
@@ -44,22 +57,68 @@ export class PrismaProfileService implements IProfileRepository {
       where: { accountId },
       data: { nickname },
       include: {
-        qnas: true
+        qnas: true,
+        profileImage: true,
+        images: true
       }
     });
 
-    return updatedProfile as Profile;
+    return this.mapToProfileEntity(updatedProfile);
   }
 
-  async update(id: string, data: Partial<Profile>): Promise<Profile> {
+  async addImage(accountId: string, image: Image): Promise<Profile> {
+    const updatedProfile = await this.prisma.profile.update({
+      where: { accountId },
+      data: {
+        images: {
+          create: {
+            url: image.url,
+            publicId: image.publicId
+          }
+        }
+      },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      }
+    });
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
+  async update(id: string, data: any): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },
       data,
       include: {
-        qnas: true
+        qnas: true,
+        profileImage: true,
+        images: true
       }
     });
 
-    return updatedProfile as Profile;
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
+  private mapToProfileEntity(profile: any): Profile {
+    return new Profile(
+      profile.id,
+      profile.accountId,
+      profile.nickname,
+      profile.email,
+      profile.profileImage ? new Image(profile.profileImage.url, profile.profileImage.publicId) : null,
+      profile.images.map((img: any) => new Image(img.url, img.publicId)),
+      profile.mbti as any,
+      profile.qnas.map((qna: any) => new QnA(
+        qna.id,
+        qna.question,
+        qna.answer,
+        qna.createdAt,
+        qna.updatedAt
+      )),
+      profile.createdAt,
+      profile.updatedAt
+    );
   }
 }

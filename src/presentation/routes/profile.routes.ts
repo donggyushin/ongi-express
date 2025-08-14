@@ -24,5 +24,13 @@ export class ProfileRoutes {
 
     // PATCH /profiles/nickname - Update current user nickname
     this.router.patch('/nickname', AuthMiddleware.verifyToken, this.profileController.updateNickname);
+
+    // POST /profiles/me/add-image - Add image to profile gallery
+    this.router.post(
+      '/me/add-image',
+      AuthMiddleware.verifyToken,
+      this.profileController.addImageMiddleware,
+      this.profileController.addImage
+    );
   }
 }
