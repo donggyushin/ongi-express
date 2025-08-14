@@ -1,4 +1,4 @@
-import { Prisma } from '@/generated/prisma';
+import { Prisma } from '../../generated/prisma';
 
 // Type-safe interfaces for Prisma JSON fields
 export interface ImageData {

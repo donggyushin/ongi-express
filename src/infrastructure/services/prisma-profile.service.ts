@@ -1,4 +1,4 @@
-import { PrismaClient } from '@/generated/prisma';
+import { PrismaClient } from '../../generated/prisma';
 import { IProfileRepository } from '@/domain/repositories';
 import { Profile, Image, QnA } from '@/domain/entities';
 

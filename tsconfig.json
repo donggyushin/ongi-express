@@ -27,7 +27,8 @@
       "@/domain/*": ["src/domain/*"],
       "@/infrastructure/*": ["src/infrastructure/*"],
       "@/presentation/*": ["src/presentation/*"],
-      "@/shared/*": ["src/shared/*"]
+      "@/shared/*": ["src/shared/*"],
+      "@/generated/*": ["src/generated/*"]
     },
     "allowSyntheticDefaultImports": true,
     "experimentalDecorators": true,

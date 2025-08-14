@@ -1,6 +1,6 @@
 import { Account, AccountType, Profile, QnA, Image } from '@/domain/entities';
 import { IAccountRepository } from '@/domain/repositories';
-import { PrismaClient } from '@/generated/prisma';
+import { PrismaClient } from '../../generated/prisma';
 import { generateFriendlyNickname } from '@/shared/utils';
 
 export class PrismaAccountService implements IAccountRepository {
