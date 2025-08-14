@@ -26,6 +26,7 @@ model Profile {
   id           String    @id @default(cuid())
   accountId    String    @unique @map("account_id")
   nickname     String    @db.VarChar(50)
+  email        String?   @db.VarChar(255)
   profileImage String?   @map("profile_image")
   images       String[]  @default([])
   mbti         MBTIType?
