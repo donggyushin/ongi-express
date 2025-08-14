@@ -9,6 +9,7 @@ export interface IProfileUseCase {
   getProfile(accountId: string): Promise<Profile | null>;
   addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
+  addQna(accountId: string, question: string, answer: string): Promise<Profile>;
 }
 
 export class ProfileUseCase implements IProfileUseCase {
@@ -116,6 +117,40 @@ export class ProfileUseCase implements IProfileUseCase {
     
     // Remove image from profile
     const updatedProfile = await this.profileRepository.removeImage(accountId, publicId);
+    
+    return updatedProfile;
+  }
+
+  async addQna(accountId: string, question: string, answer: string): Promise<Profile> {
+    // Validate input
+    if (!question || question.trim().length === 0) {
+      throw new Error('Question is required');
+    }
+    if (!answer || answer.trim().length === 0) {
+      throw new Error('Answer is required');
+    }
+
+    // Validate length limits (based on schema constraints)
+    if (question.length > 500) {
+      throw new Error('Question must be 500 characters or less');
+    }
+    if (answer.length > 1500) {
+      throw new Error('Answer must be 1500 characters or less');
+    }
+
+    // Check if profile exists and get current Q&A count
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Check Q&A count limit (max 6)
+    if (existingProfile.qnas.length >= 6) {
+      throw new Error('Maximum Q&A limit (6) reached');
+    }
+
+    // Add Q&A to profile
+    const updatedProfile = await this.profileRepository.addQna(accountId, question.trim(), answer.trim());
     
     return updatedProfile;
   }

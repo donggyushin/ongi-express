@@ -1,4 +1,4 @@
-import { Profile, Image } from '../entities';
+import { Profile, Image, QnA } from '../entities';
 
 export interface IProfileRepository {
   findById(id: string): Promise<Profile | null>;
@@ -8,5 +8,6 @@ export interface IProfileRepository {
   updateMbti(accountId: string, mbti: string): Promise<Profile>;
   addImage(accountId: string, image: Image): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
+  addQna(accountId: string, question: string, answer: string): Promise<Profile>;
   update(id: string, data: Partial<Profile>): Promise<Profile>;
 }
