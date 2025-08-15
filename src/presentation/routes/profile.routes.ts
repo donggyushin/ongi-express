@@ -28,6 +28,9 @@ export class ProfileRoutes {
     // POST /profiles/me/mbti - Update current user MBTI type
     this.router.post('/me/mbti', AuthMiddleware.verifyToken, this.profileController.updateMbti);
 
+    // POST /profiles/me/gender - Update current user gender
+    this.router.post('/me/gender', AuthMiddleware.verifyToken, this.profileController.updateGender);
+
     // POST /profiles/me/qna - Add Q&A to profile
     this.router.post('/me/qna', AuthMiddleware.verifyToken, this.profileController.addQna);
 

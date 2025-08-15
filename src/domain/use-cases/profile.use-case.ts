@@ -6,6 +6,7 @@ export interface IProfileUseCase {
   updateProfileImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   updateNickname(accountId: string, nickname: string): Promise<Profile>;
   updateMbti(accountId: string, mbti: string): Promise<Profile>;
+  updateGender(accountId: string, gender: string): Promise<Profile>;
   getProfile(accountId: string): Promise<Profile | null>;
   addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
@@ -209,6 +210,26 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update Q&A answer
     const updatedProfile = await this.profileRepository.updateQna(accountId, qnaId, answer.trim());
+    
+    return updatedProfile;
+  }
+
+  async updateGender(accountId: string, gender: string): Promise<Profile> {
+    // Validate gender type
+    const validGenderTypes = ['MALE', 'FEMALE'];
+    
+    if (!validGenderTypes.includes(gender.toUpperCase())) {
+      throw new Error('Invalid gender type. Must be one of: ' + validGenderTypes.join(', '));
+    }
+
+    // Check if profile exists
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Update gender
+    const updatedProfile = await this.profileRepository.updateGender(accountId, gender.toUpperCase());
     
     return updatedProfile;
   }
