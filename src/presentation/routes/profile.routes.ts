@@ -34,6 +34,9 @@ export class ProfileRoutes {
     // POST /profiles/me/physical-info - Update current user height and weight
     this.router.post('/me/physical-info', AuthMiddleware.verifyToken, this.profileController.updatePhysicalInfo);
 
+    // POST /profiles/me/introduction - Update current user introduction
+    this.router.post('/me/introduction', AuthMiddleware.verifyToken, this.profileController.updateIntroduction);
+
     // POST /profiles/me/qna - Add Q&A to profile
     this.router.post('/me/qna', AuthMiddleware.verifyToken, this.profileController.addQna);
 

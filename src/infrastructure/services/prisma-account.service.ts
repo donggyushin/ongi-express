@@ -37,6 +37,7 @@ export class PrismaAccountService implements IAccountRepository {
         result.profile.accountId,
         result.profile.nickname,
         result.profile.email,
+        result.profile.introduction,
         result.profile.profileImage ? new Image(
           result.profile.profileImage.url,
           result.profile.profileImage.publicId
@@ -92,6 +93,7 @@ export class PrismaAccountService implements IAccountRepository {
         profile.accountId,
         profile.nickname,
         profile.email,
+        profile.introduction,
         profile.profileImage ? new Image(
           profile.profileImage.url,
           profile.profileImage.publicId

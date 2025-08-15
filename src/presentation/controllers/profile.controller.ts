@@ -521,4 +521,63 @@ export class ProfileController {
       res.status(500).json(response);
     }
   };
+
+  public updateIntroduction = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { introduction } = req.body;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!introduction) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Introduction is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      if (typeof introduction !== 'string') {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Introduction must be a string'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      if (introduction.length > 500) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Introduction must be 500 characters or less'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const updatedProfile = await this.profileUseCase.updateIntroduction(accountId, introduction);
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: updatedProfile,
+        message: 'Introduction updated successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update introduction'
+      };
+      res.status(500).json(response);
+    }
+  };
 }

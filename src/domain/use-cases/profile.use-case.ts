@@ -8,6 +8,7 @@ export interface IProfileUseCase {
   updateMbti(accountId: string, mbti: string): Promise<Profile>;
   updateGender(accountId: string, gender: string): Promise<Profile>;
   updatePhysicalInfo(accountId: string, height?: number, weight?: number): Promise<Profile>;
+  updateIntroduction(accountId: string, introduction: string): Promise<Profile>;
   getProfile(accountId: string): Promise<Profile | null>;
   addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
@@ -273,6 +274,28 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update physical info
     const updatedProfile = await this.profileRepository.updatePhysicalInfo(accountId, height, weight);
+    
+    return updatedProfile;
+  }
+
+  async updateIntroduction(accountId: string, introduction: string): Promise<Profile> {
+    // Validate introduction
+    if (!introduction || introduction.trim().length === 0) {
+      throw new Error('Introduction is required');
+    }
+
+    if (introduction.length > 500) {
+      throw new Error('Introduction must be 500 characters or less');
+    }
+
+    // Check if profile exists
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Update introduction
+    const updatedProfile = await this.profileRepository.updateIntroduction(accountId, introduction.trim());
     
     return updatedProfile;
   }

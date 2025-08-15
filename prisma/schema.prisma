@@ -40,6 +40,7 @@ model Profile {
   accountId    String      @unique @map("account_id")
   nickname     String      @db.VarChar(50)
   email        String?     @db.VarChar(255)
+  introduction String?     @db.VarChar(500)
   profileImage Image?      @relation("ProfileImage", fields: [profileImageId], references: [id])
   profileImageId String?   @unique @map("profile_image_id")
   images       Image[]     @relation("ProfileImages")

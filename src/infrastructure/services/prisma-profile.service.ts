@@ -287,6 +287,20 @@ export class PrismaProfileService implements IProfileRepository {
     return this.mapToProfileEntity(updatedProfile);
   }
 
+  async updateIntroduction(accountId: string, introduction: string): Promise<Profile> {
+    const updatedProfile = await this.prisma.profile.update({
+      where: { accountId },
+      data: { introduction },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      }
+    });
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
   async update(id: string, data: any): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },
@@ -307,6 +321,7 @@ export class PrismaProfileService implements IProfileRepository {
       profile.accountId,
       profile.nickname,
       profile.email,
+      profile.introduction,
       profile.profileImage ? new Image(profile.profileImage.url, profile.profileImage.publicId) : null,
       profile.images.map((img: any) => new Image(img.url, img.publicId)),
       profile.mbti as any,
