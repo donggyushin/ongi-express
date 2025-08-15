@@ -25,6 +25,13 @@ export enum GenderType {
   FEMALE = 'FEMALE'
 }
 
+export enum BodyType {
+  SLIM = 'SLIM',
+  NORMAL = 'NORMAL',
+  CHUBBY = 'CHUBBY',
+  LARGE = 'LARGE'
+}
+
 export class Profile {
   constructor(
     public readonly id: string,
@@ -42,6 +49,33 @@ export class Profile {
     public readonly updatedAt: Date = new Date()
   ) {}
 
+  private calculateBMI(): number | null {
+    if (!this.height || !this.weight) {
+      return null;
+    }
+    // BMI = weight(kg) / (height(m))^2
+    const heightInMeters = this.height / 100;
+    return this.weight / (heightInMeters * heightInMeters);
+  }
+
+  get bodyType(): BodyType | null {
+    const bmi = this.calculateBMI();
+    
+    if (bmi === null) {
+      return null;
+    }
+
+    if (bmi < 18.5) {
+      return BodyType.SLIM;
+    } else if (bmi < 25) {
+      return BodyType.NORMAL;
+    } else if (bmi < 30) {
+      return BodyType.CHUBBY;
+    } else {
+      return BodyType.LARGE;
+    }
+  }
+
   toJSON() {
     return {
       id: this.id,
@@ -54,6 +88,7 @@ export class Profile {
       gender: this.gender,
       height: this.height,
       weight: this.weight,
+      bodyType: this.bodyType,
       qnas: this.qnas.map(qna => qna.toJSON()),
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString()
