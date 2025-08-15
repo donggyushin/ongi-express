@@ -23,7 +23,18 @@ export class ProfileUseCase implements IProfileUseCase {
   ) {}
 
   async updateProfileImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile> {
-    // Upload image to Cloudinary
+    // Check if profile exists and get current profile image
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Delete existing profile image from Cloudinary if it exists
+    if (existingProfile.profileImage && existingProfile.profileImage.publicId) {
+      await this.imageRepository.deleteImage(existingProfile.profileImage.publicId);
+    }
+    
+    // Upload new image to Cloudinary
     const imageData = await this.imageRepository.uploadImageWithData(imageFile, fileName, 'profile-images');
     const newImage = new Image(imageData.url, imageData.publicId);
     
