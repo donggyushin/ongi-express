@@ -45,6 +45,8 @@ model Profile {
   images       Image[]     @relation("ProfileImages")
   mbti         MBTIType?
   gender       GenderType?
+  height       Float?
+  weight       Float?
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
   

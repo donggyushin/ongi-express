@@ -35,6 +35,8 @@ export class Profile {
     public readonly images: Image[] = [],
     public readonly mbti: MBTIType | null = null,
     public readonly gender: GenderType | null = null,
+    public readonly height: number | null = null,
+    public readonly weight: number | null = null,
     public readonly qnas: QnA[] = [],
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
@@ -50,6 +52,8 @@ export class Profile {
       images: this.images.map(image => image.toJSON()),
       mbti: this.mbti,
       gender: this.gender,
+      height: this.height,
+      weight: this.weight,
       qnas: this.qnas.map(qna => qna.toJSON()),
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString()
