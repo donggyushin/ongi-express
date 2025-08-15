@@ -11,7 +11,7 @@ export class MailgunService implements IEmailService {
 
   constructor() {
     const apiKey = process.env.MAILGUN_API_KEY;
-    this.domain = process.env.MAILGUN_DOMAIN || 'your-domain.com'; // 추후 설정 필요
+    this.domain = process.env.MAILGUN_DOMAIN || 'sandboxbe98c6d5a7344ae79f59a636438b2f37.mailgun.org';
     
     if (!apiKey) {
       throw new Error('MAILGUN_API_KEY is required');
@@ -21,11 +21,28 @@ export class MailgunService implements IEmailService {
     this.mailgun = mailgun.client({
       username: 'api',
       key: apiKey,
+      url: 'https://api.mailgun.net'
     });
+
+    console.log('Mailgun initialized with domain:', this.domain);
+    console.log('API Key (first 10 chars):', apiKey.substring(0, 10) + '...');
   }
 
   async sendVerificationEmail(to: string, verificationCode: string): Promise<void> {
     try {
+      // 개발 환경에서는 콘솔에 인증 코드 출력
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('='.repeat(50));
+        console.log('📧 DEVELOPMENT MODE - Email Simulation');
+        console.log('='.repeat(50));
+        console.log(`To: ${to}`);
+        console.log(`Subject: 이메일 인증 코드`);
+        console.log(`Verification Code: ${verificationCode}`);
+        console.log('='.repeat(50));
+        console.log('💡 Use this code for testing!');
+        return;
+      }
+
       const mailData = {
         from: `Ongi <noreply@${this.domain}>`,
         to: to,

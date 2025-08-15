@@ -43,6 +43,7 @@
     "mailgun.js": "^12.0.3",
     "morgan": "^1.10.1",
     "multer": "^2.0.2",
+    "nodemailer": "^7.0.5",
     "pg": "^8.16.3",
     "prisma": "^6.14.0"
   },
@@ -52,6 +53,7 @@
     "@types/morgan": "^1.9.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.2.1",
+    "@types/nodemailer": "^6.4.17",
     "nodemon": "^3.1.10",
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",

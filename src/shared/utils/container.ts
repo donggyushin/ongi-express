@@ -4,6 +4,7 @@ import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository
 import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService } from '@/infrastructure/services';
 import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma-email-verification.service';
 import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
+import { GmailService } from '@/infrastructure/services/gmail.service';
 import { IDatabaseService } from '@/shared/types';
 import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController } from '@/presentation/controllers';
 import { EmailVerificationController } from '@/presentation/controllers/email-verification.controller';
@@ -36,7 +37,7 @@ export class Container {
     this.services.set('profileRepository', new PrismaProfileService(this.get('prisma')));
     this.services.set('emailVerificationRepository', new PrismaEmailVerificationService(this.get('prisma')));
     this.services.set('imageRepository', new CloudinaryService(this.get<ILoggerService>('logger')));
-    this.services.set('emailService', new MailgunService());
+    this.services.set('emailService', new GmailService());
     this.services.set('systemRepository', new SystemService());
     this.services.set('jwtRepository', new JwtService());
 
