@@ -471,4 +471,54 @@ export class ProfileController {
       res.status(500).json(response);
     }
   };
+
+  public updatePhysicalInfo = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { height, weight } = req.body;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (height !== undefined && typeof height !== 'number') {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Height must be a number'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      if (weight !== undefined && typeof weight !== 'number') {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Weight must be a number'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const updatedProfile = await this.profileUseCase.updatePhysicalInfo(accountId, height, weight);
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: updatedProfile,
+        message: 'Physical info updated successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update physical info'
+      };
+      res.status(500).json(response);
+    }
+  };
 }

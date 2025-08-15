@@ -263,6 +263,30 @@ export class PrismaProfileService implements IProfileRepository {
     return this.mapToProfileEntity(updatedProfile);
   }
 
+  async updatePhysicalInfo(accountId: string, height?: number, weight?: number): Promise<Profile> {
+    const updateData: any = {};
+    
+    if (height !== undefined) {
+      updateData.height = height;
+    }
+    
+    if (weight !== undefined) {
+      updateData.weight = weight;
+    }
+
+    const updatedProfile = await this.prisma.profile.update({
+      where: { accountId },
+      data: updateData,
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      }
+    });
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
   async update(id: string, data: any): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },
