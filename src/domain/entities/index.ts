@@ -5,3 +5,4 @@ export * from './auth-tokens.entity';
 export * from './profile.entity';
 export * from './qna.entity';
 export * from './image.entity';
+export * from './email-verification.entity';

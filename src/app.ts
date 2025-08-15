@@ -7,6 +7,7 @@ import dotenv from 'dotenv';
 import { Container } from '@/shared/utils';
 import { ErrorMiddleware } from '@/presentation/middlewares';
 import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes } from '@/presentation/routes';
+import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
 
 dotenv.config();
 
@@ -34,12 +35,14 @@ class App {
     const databaseRoutes = this.container.get<DatabaseRoutes>('databaseRoutes');
     const accountRoutes = this.container.get<AccountRoutes>('accountRoutes');
     const profileRoutes = this.container.get<ProfileRoutes>('profileRoutes');
+    const emailVerificationRoutes = this.container.get<EmailVerificationRoutes>('emailVerificationRoutes');
 
     this.app.use('/', welcomeRoutes.getRouter());
     this.app.use('/health', healthRoutes.getRouter());
     this.app.use('/database', databaseRoutes.getRouter());
     this.app.use('/accounts', accountRoutes.getRouter());
     this.app.use('/profiles', profileRoutes.getRouter());
+    this.app.use('/email-verification', emailVerificationRoutes.getRouter());
   }
 
   private initializeErrorHandling(): void {

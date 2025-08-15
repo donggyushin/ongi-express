@@ -98,3 +98,17 @@ enum GenderType {
   MALE
   FEMALE
 }
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  accountId String   @map("account_id")
+  email     String
+  code      String   @db.VarChar(6)
+  expiresAt DateTime @map("expires_at")
+  isUsed    Boolean  @default(false) @map("is_used")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("email_verifications")
+  @@index([accountId])
+  @@index([email])
+}
