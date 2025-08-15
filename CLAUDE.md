@@ -20,7 +20,8 @@ npm run typecheck
 # Prisma commands
 npx prisma generate        # Generate Prisma client after schema changes
 npx prisma migrate dev     # Create and apply new migrations
-npx prisma migrate reset   # Reset database and apply all migrations
+npx prisma migrate reset   # ⚠️ DANGER: Resets database and deletes ALL data
+npx prisma db push         # Push schema changes without migration files
 npx prisma studio          # Open Prisma Studio for database management
 ```
 
@@ -136,6 +137,14 @@ const isHealthy = await databaseService.healthCheck();
 - Use repository pattern: Domain defines interfaces, Infrastructure implements them
 - Handle database errors gracefully with try-catch blocks
 - Use Prisma migrations for schema changes
+
+**⚠️ CRITICAL DATABASE SAFETY WARNING ⚠️**
+- **NEVER use `npx prisma migrate reset`** - This command deletes ALL data permanently
+- **Development and Production share the same database** - All data changes affect real user data
+- **Always use `npx prisma db push`** for schema changes to avoid data loss
+- **Before any schema changes**: Backup important data or test on local environment first
+- **If migration is absolutely necessary**: Create individual migrations with `npx prisma migrate dev --name descriptive-name`
+- **Data is irreplaceable**: Treat every database operation as if it affects production users
 
 ### Environment Configuration
 

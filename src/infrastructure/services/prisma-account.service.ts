@@ -43,6 +43,9 @@ export class PrismaAccountService implements IAccountRepository {
         ) : null,
         result.profile.images.map((img) => new Image(img.url, img.publicId)),
         result.profile.mbti as any,
+        result.profile.gender as any,
+        result.profile.height,
+        result.profile.weight,
         result.profile.qnas.map(qna => new QnA(
           qna.id,
           qna.question,
@@ -95,6 +98,9 @@ export class PrismaAccountService implements IAccountRepository {
         ) : null,
         profile.images.map((img) => new Image(img.url, img.publicId)),
         profile.mbti as any,
+        profile.gender as any,
+        profile.height,
+        profile.weight,
         profile.qnas.map(qna => new QnA(
           qna.id,
           qna.question,

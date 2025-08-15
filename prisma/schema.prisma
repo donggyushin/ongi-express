@@ -36,16 +36,19 @@ model Image {
 }
 
 model Profile {
-  id           String    @id @default(cuid())
-  accountId    String    @unique @map("account_id")
-  nickname     String    @db.VarChar(50)
-  email        String?   @db.VarChar(255)
-  profileImage Image?    @relation("ProfileImage", fields: [profileImageId], references: [id])
-  profileImageId String? @unique @map("profile_image_id")
-  images       Image[]   @relation("ProfileImages")
+  id           String      @id @default(cuid())
+  accountId    String      @unique @map("account_id")
+  nickname     String      @db.VarChar(50)
+  email        String?     @db.VarChar(255)
+  profileImage Image?      @relation("ProfileImage", fields: [profileImageId], references: [id])
+  profileImageId String?   @unique @map("profile_image_id")
+  images       Image[]     @relation("ProfileImages")
   mbti         MBTIType?
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  gender       GenderType?
+  height       Float?
+  weight       Float?
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
   
   qnas         QnA[]
 
@@ -89,4 +92,23 @@ enum MBTIType {
   ISFP
   ESTP
   ESFP
+}
+
+enum GenderType {
+  MALE
+  FEMALE
+}
+
+model EmailVerification {
+  id        String   @id @default(cuid())
+  accountId String   @map("account_id")
+  email     String
+  code      String   @db.VarChar(6)
+  expiresAt DateTime @map("expires_at")
+  isUsed    Boolean  @default(false) @map("is_used")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("email_verifications")
+  @@index([accountId])
+  @@index([email])
 }

@@ -1,10 +1,16 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, ProfileUseCase, IProfileUseCase } from '@/domain/use-cases';
-import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository } from '@/domain/repositories';
+import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
+import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository } from '@/domain/repositories';
 import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService } from '@/infrastructure/services';
+import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma-email-verification.service';
+import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
+import { GmailService } from '@/infrastructure/services/gmail.service';
 import { IDatabaseService } from '@/shared/types';
 import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController } from '@/presentation/controllers';
+import { EmailVerificationController } from '@/presentation/controllers/email-verification.controller';
 import { ErrorMiddleware } from '@/presentation/middlewares';
 import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes } from '@/presentation/routes';
+import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
 
 export class Container {
   private static instance: Container;
@@ -29,7 +35,9 @@ export class Container {
     this.services.set('prisma', PrismaService.getInstance());
     this.services.set('accountRepository', new PrismaAccountService(this.get('prisma')));
     this.services.set('profileRepository', new PrismaProfileService(this.get('prisma')));
+    this.services.set('emailVerificationRepository', new PrismaEmailVerificationService(this.get('prisma')));
     this.services.set('imageRepository', new CloudinaryService(this.get<ILoggerService>('logger')));
+    this.services.set('emailService', new GmailService());
     this.services.set('systemRepository', new SystemService());
     this.services.set('jwtRepository', new JwtService());
 
@@ -46,6 +54,11 @@ export class Container {
       this.get<IProfileRepository>('profileRepository'),
       this.get<IImageRepository>('imageRepository')
     ));
+    this.services.set('emailVerificationUseCase', new EmailVerificationUseCase(
+      this.get<IEmailVerificationRepository>('emailVerificationRepository'),
+      this.get<IProfileRepository>('profileRepository'),
+      this.get<IEmailService>('emailService')
+    ));
 
     // Controllers
     this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));
@@ -57,6 +70,7 @@ export class Container {
       this.get<IRefreshTokenUseCase>('refreshTokenUseCase')
     ));
     this.services.set('profileController', new ProfileController(this.get<IProfileUseCase>('profileUseCase')));
+    this.services.set('emailVerificationController', new EmailVerificationController(this.get<IEmailVerificationUseCase>('emailVerificationUseCase')));
 
     // Middlewares
     this.services.set('errorMiddleware', new ErrorMiddleware(this.get<ILoggerService>('logger')));
@@ -67,6 +81,7 @@ export class Container {
     this.services.set('databaseRoutes', new DatabaseRoutes(this.get<DatabaseController>('databaseController')));
     this.services.set('accountRoutes', new AccountRoutes(this.get<AccountController>('accountController')));
     this.services.set('profileRoutes', new ProfileRoutes(this.get<ProfileController>('profileController')));
+    this.services.set('emailVerificationRoutes', new EmailVerificationRoutes(this.get<EmailVerificationController>('emailVerificationController')));
   }
 
   get<T>(serviceName: string): T {

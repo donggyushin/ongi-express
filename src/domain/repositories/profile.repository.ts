@@ -6,6 +6,8 @@ export interface IProfileRepository {
   updateProfileImage(accountId: string, image: Image): Promise<Profile>;
   updateNickname(accountId: string, nickname: string): Promise<Profile>;
   updateMbti(accountId: string, mbti: string): Promise<Profile>;
+  updateGender(accountId: string, gender: string): Promise<Profile>;
+  updatePhysicalInfo(accountId: string, height?: number, weight?: number): Promise<Profile>;
   addImage(accountId: string, image: Image): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
   addQna(accountId: string, question: string, answer: string): Promise<Profile>;

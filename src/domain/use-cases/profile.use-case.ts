@@ -6,6 +6,8 @@ export interface IProfileUseCase {
   updateProfileImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   updateNickname(accountId: string, nickname: string): Promise<Profile>;
   updateMbti(accountId: string, mbti: string): Promise<Profile>;
+  updateGender(accountId: string, gender: string): Promise<Profile>;
+  updatePhysicalInfo(accountId: string, height?: number, weight?: number): Promise<Profile>;
   getProfile(accountId: string): Promise<Profile | null>;
   addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
@@ -209,6 +211,57 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update Q&A answer
     const updatedProfile = await this.profileRepository.updateQna(accountId, qnaId, answer.trim());
+    
+    return updatedProfile;
+  }
+
+  async updateGender(accountId: string, gender: string): Promise<Profile> {
+    // Validate gender type
+    const validGenderTypes = ['MALE', 'FEMALE'];
+    
+    if (!validGenderTypes.includes(gender.toUpperCase())) {
+      throw new Error('Invalid gender type. Must be one of: ' + validGenderTypes.join(', '));
+    }
+
+    // Check if profile exists
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Update gender
+    const updatedProfile = await this.profileRepository.updateGender(accountId, gender.toUpperCase());
+    
+    return updatedProfile;
+  }
+
+  async updatePhysicalInfo(accountId: string, height?: number, weight?: number): Promise<Profile> {
+    // Validate inputs if provided
+    if (height !== undefined) {
+      if (height < 50 || height > 300) {
+        throw new Error('Height must be between 50cm and 300cm');
+      }
+    }
+
+    if (weight !== undefined) {
+      if (weight < 10 || weight > 500) {
+        throw new Error('Weight must be between 10kg and 500kg');
+      }
+    }
+
+    // At least one field must be provided
+    if (height === undefined && weight === undefined) {
+      throw new Error('At least one of height or weight must be provided');
+    }
+
+    // Check if profile exists
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Update physical info
+    const updatedProfile = await this.profileRepository.updatePhysicalInfo(accountId, height, weight);
     
     return updatedProfile;
   }
