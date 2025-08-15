@@ -36,16 +36,17 @@ model Image {
 }
 
 model Profile {
-  id           String    @id @default(cuid())
-  accountId    String    @unique @map("account_id")
-  nickname     String    @db.VarChar(50)
-  email        String?   @db.VarChar(255)
-  profileImage Image?    @relation("ProfileImage", fields: [profileImageId], references: [id])
-  profileImageId String? @unique @map("profile_image_id")
-  images       Image[]   @relation("ProfileImages")
+  id           String      @id @default(cuid())
+  accountId    String      @unique @map("account_id")
+  nickname     String      @db.VarChar(50)
+  email        String?     @db.VarChar(255)
+  profileImage Image?      @relation("ProfileImage", fields: [profileImageId], references: [id])
+  profileImageId String?   @unique @map("profile_image_id")
+  images       Image[]     @relation("ProfileImages")
   mbti         MBTIType?
-  createdAt    DateTime  @default(now()) @map("created_at")
-  updatedAt    DateTime  @updatedAt @map("updated_at")
+  gender       GenderType?
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
   
   qnas         QnA[]
 
@@ -89,4 +90,9 @@ enum MBTIType {
   ISFP
   ESTP
   ESFP
+}
+
+enum GenderType {
+  MALE
+  FEMALE
 }
