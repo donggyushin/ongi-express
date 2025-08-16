@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 
 import { Container } from '@/shared/utils';
 import { ErrorMiddleware } from '@/presentation/middlewares';
-import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes } from '@/presentation/routes';
+import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes } from '@/presentation/routes';
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
 
 dotenv.config();
@@ -36,6 +36,7 @@ class App {
     const accountRoutes = this.container.get<AccountRoutes>('accountRoutes');
     const profileRoutes = this.container.get<ProfileRoutes>('profileRoutes');
     const emailVerificationRoutes = this.container.get<EmailVerificationRoutes>('emailVerificationRoutes');
+    const qnaExamplesRoutes = this.container.get<QnAExamplesRoutes>('qnaExamplesRoutes');
 
     this.app.use('/', welcomeRoutes.getRouter());
     this.app.use('/health', healthRoutes.getRouter());
@@ -43,6 +44,7 @@ class App {
     this.app.use('/accounts', accountRoutes.getRouter());
     this.app.use('/profiles', profileRoutes.getRouter());
     this.app.use('/email-verification', emailVerificationRoutes.getRouter());
+    this.app.use('/qna', qnaExamplesRoutes.getRouter());
   }
 
   private initializeErrorHandling(): void {

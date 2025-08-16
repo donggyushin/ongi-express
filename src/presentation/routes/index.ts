@@ -3,3 +3,4 @@ export * from './welcome.routes';
 export * from './database.routes';
 export * from './account.routes';
 export * from './profile.routes';
+export * from './qna-examples.routes';
