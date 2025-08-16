@@ -59,12 +59,12 @@ export class EmailVerificationUseCase implements IEmailVerificationUseCase {
 
     // 일회용 이메일 도메인 체크
     if (disposableDomains.includes(domain)) {
-      throw new Error('Disposable email addresses are not allowed');
+      throw new Error('임시 이메일 주소는 사용할 수 없습니다');
     }
 
     // 개인 이메일 도메인 체크
     if (freeEmailDomains.includes(domain)) {
-      throw new Error('Personal email addresses are not allowed. Please use your company email');
+      throw new Error('개인 이메일 주소는 사용할 수 없습니다. 회사 이메일을 사용해 주세요');
     }
 
     // 프로필 존재 확인

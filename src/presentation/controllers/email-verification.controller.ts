@@ -86,8 +86,8 @@ export class EmailVerificationController {
       
       // 회사 이메일이 아닌 경우 400 에러
       if (error instanceof Error && 
-          (error.message.includes('Personal email addresses') || 
-           error.message.includes('Disposable email addresses'))) {
+          (error.message.includes('개인 이메일 주소') || 
+           error.message.includes('임시 이메일 주소'))) {
         res.status(400).json(response);
       } else {
         res.status(500).json(response);
