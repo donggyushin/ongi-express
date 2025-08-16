@@ -18,6 +18,13 @@ export class EmailVerificationRoutes {
       this.emailVerificationController.sendVerificationCode
     );
 
+    // POST /email-verification/send-company - Send verification code to company email only
+    this.router.post(
+      '/send-company',
+      AuthMiddleware.verifyToken,
+      this.emailVerificationController.sendCompanyVerificationCode
+    );
+
     // POST /email-verification/verify - Verify email with code and update profile
     this.router.post(
       '/verify',

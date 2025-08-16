@@ -47,6 +47,54 @@ export class EmailVerificationController {
     }
   };
 
+  public sendCompanyVerificationCode = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { email } = req.body;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!email) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Email is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      await this.emailVerificationUseCase.sendCompanyVerificationCode(accountId, email);
+
+      const response: ApiResponse<null> = {
+        success: true,
+        message: 'Verification code sent to your company email'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to send verification code'
+      };
+      
+      // 회사 이메일이 아닌 경우 400 에러
+      if (error instanceof Error && 
+          (error.message.includes('Personal email addresses') || 
+           error.message.includes('Disposable email addresses'))) {
+        res.status(400).json(response);
+      } else {
+        res.status(500).json(response);
+      }
+    }
+  };
+
   public verifyEmail = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const accountId = req.userId;

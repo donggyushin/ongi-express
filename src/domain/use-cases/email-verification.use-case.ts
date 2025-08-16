@@ -3,6 +3,7 @@ import { EmailVerification, Profile } from '../entities';
 
 export interface IEmailVerificationUseCase {
   sendVerificationCode(accountId: string, email: string): Promise<void>;
+  sendCompanyVerificationCode(accountId: string, email: string): Promise<void>;
   verifyEmailAndUpdateProfile(accountId: string, code: string): Promise<Profile>;
 }
 
@@ -18,6 +19,52 @@ export class EmailVerificationUseCase implements IEmailVerificationUseCase {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
       throw new Error('Invalid email format');
+    }
+
+    // 프로필 존재 확인
+    const profile = await this.profileRepository.findByAccountId(accountId);
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    // 6자리 랜덤 인증 코드 생성
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    
+    // 만료 시간 설정 (5분 후)
+    const expiresAt = new Date();
+    expiresAt.setMinutes(expiresAt.getMinutes() + 5);
+
+    // 인증 코드 저장
+    await this.emailVerificationRepository.create(accountId, email, code, expiresAt);
+
+    // 이메일 발송
+    await this.emailService.sendVerificationEmail(email, code);
+  }
+
+  async sendCompanyVerificationCode(accountId: string, email: string): Promise<void> {
+    const disposableDomains = require('disposable-email-domains');
+    const freeEmailDomains = [
+      'gmail.com', 'yahoo.com', 'hotmail.com', 'outlook.com', 'naver.com', 
+      'daum.net', 'hanmail.net', 'kakao.com', 'nate.com', 'icloud.com',
+      'live.com', 'msn.com', 'yahoo.co.kr', 'ymail.com', 'googlemail.com'
+    ];
+
+    // 이메일 형식 검증
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      throw new Error('Invalid email format');
+    }
+
+    const domain = email.split('@')[1].toLowerCase();
+
+    // 일회용 이메일 도메인 체크
+    if (disposableDomains.includes(domain)) {
+      throw new Error('Disposable email addresses are not allowed');
+    }
+
+    // 개인 이메일 도메인 체크
+    if (freeEmailDomains.includes(domain)) {
+      throw new Error('Personal email addresses are not allowed. Please use your company email');
     }
 
     // 프로필 존재 확인
