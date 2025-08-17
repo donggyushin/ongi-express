@@ -1,6 +1,12 @@
 import { PrismaClient } from '../../generated/prisma';
 import { IProfileConnectionRepository } from '@/domain/repositories';
-import { ProfileConnection } from '@/domain/entities';
+import { ProfileConnection, ConnectedProfile } from '@/domain/entities';
+
+interface ConnectedProfileData {
+  profileId: string;
+  addedAt: string;
+  isNew: boolean;
+}
 
 export class PrismaProfileConnectionService implements IProfileConnectionRepository {
   constructor(private prisma: PrismaClient) {}
@@ -17,7 +23,7 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
     const connection = await this.prisma.profileConnection.create({
       data: {
         myProfileId,
-        othersProfileIds: []
+        otherProfiles: []
       }
     });
 
@@ -31,23 +37,44 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
 
     if (!existing) {
       // Create new connection if it doesn't exist
+      const newConnectedProfile = {
+        profileId: otherProfileId,
+        addedAt: new Date().toISOString(),
+        isNew: true
+      };
+
       const connection = await this.prisma.profileConnection.create({
         data: {
           myProfileId,
-          othersProfileIds: [otherProfileId]
+          otherProfiles: [newConnectedProfile]
         }
       });
       return this.mapToEntity(connection);
     }
 
-    // Add to existing connections if not already present
-    const updatedIds = existing.othersProfileIds.includes(otherProfileId) 
-      ? existing.othersProfileIds 
-      : [...existing.othersProfileIds, otherProfileId];
+    // Parse existing connections
+    const otherProfiles = Array.isArray(existing.otherProfiles) 
+      ? existing.otherProfiles as unknown as ConnectedProfileData[]
+      : [];
+
+    // Check if connection already exists
+    const alreadyConnected = otherProfiles.some(cp => cp.profileId === otherProfileId);
+    if (alreadyConnected) {
+      return this.mapToEntity(existing);
+    }
+
+    // Add new connection
+    const newConnectedProfile = {
+      profileId: otherProfileId,
+      addedAt: new Date().toISOString(),
+      isNew: true
+    };
+
+    const updatedProfiles = [...otherProfiles, newConnectedProfile];
 
     const connection = await this.prisma.profileConnection.update({
       where: { myProfileId },
-      data: { othersProfileIds: updatedIds }
+      data: { otherProfiles: updatedProfiles as any }
     });
 
     return this.mapToEntity(connection);
@@ -62,23 +89,33 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
       throw new Error('Profile connection not found');
     }
 
-    const updatedIds = existing.othersProfileIds.filter(id => id !== otherProfileId);
+    const otherProfiles = Array.isArray(existing.otherProfiles) 
+      ? existing.otherProfiles as unknown as ConnectedProfileData[]
+      : [];
+
+    const updatedProfiles = otherProfiles.filter(cp => cp.profileId !== otherProfileId);
 
     const connection = await this.prisma.profileConnection.update({
       where: { myProfileId },
-      data: { othersProfileIds: updatedIds }
+      data: { otherProfiles: updatedProfiles as any }
     });
 
     return this.mapToEntity(connection);
   }
 
   async updateConnections(myProfileId: string, othersProfileIds: string[]): Promise<ProfileConnection> {
+    const otherProfiles = othersProfileIds.map(profileId => ({
+      profileId,
+      addedAt: new Date().toISOString(),
+      isNew: true
+    }));
+
     const connection = await this.prisma.profileConnection.upsert({
       where: { myProfileId },
-      update: { othersProfileIds },
+      update: { otherProfiles: otherProfiles as any },
       create: {
         myProfileId,
-        othersProfileIds
+        otherProfiles: otherProfiles as any
       }
     });
 
@@ -92,10 +129,22 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
   }
 
   private mapToEntity(connection: any): ProfileConnection {
+    const otherProfiles = Array.isArray(connection.otherProfiles) 
+      ? connection.otherProfiles as unknown as ConnectedProfileData[]
+      : [];
+
+    const connectedProfiles = otherProfiles.map(cp => 
+      new ConnectedProfile(
+        cp.profileId,
+        new Date(cp.addedAt),
+        cp.isNew
+      )
+    );
+
     return new ProfileConnection(
       connection.id,
       connection.myProfileId,
-      connection.othersProfileIds,
+      connectedProfiles,
       connection.createdAt,
       connection.updatedAt
     );

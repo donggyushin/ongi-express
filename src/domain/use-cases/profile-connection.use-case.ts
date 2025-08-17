@@ -30,7 +30,7 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
       throw new Error('Current profile must have gender set');
     }
 
-    const excludeProfileIds = [...connection.othersProfileIds, profileId]; // 자기 자신도 제외
+    const excludeProfileIds = [...connection.connectedProfileIds, profileId]; // 자기 자신도 제외
     const randomProfile = await this.profileRepository.findRandomProfileByGender(
       currentGender,
       excludeProfileIds
