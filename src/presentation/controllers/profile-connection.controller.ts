@@ -74,17 +74,19 @@ export class ProfileConnectionController {
         return;
       }
 
-      const profiles = await this.profileConnectionUseCase.getConnectedProfiles(userId, limitNumber);
+      const result = await this.profileConnectionUseCase.getConnectedProfiles(userId, limitNumber);
 
       const response: ApiResponse<{
         profiles: any[];
+        newProfileIds: string[];
         count: number;
         limit: number;
       }> = {
         success: true,
         data: {
-          profiles: profiles.map(profile => profile.toJSON()),
-          count: profiles.length,
+          profiles: result.profiles.map(profile => profile.toJSON()),
+          newProfileIds: result.newProfileIds,
+          count: result.profiles.length,
           limit: Math.min(limitNumber, 100)
         }
       };

@@ -7,6 +7,6 @@ export interface IProfileConnectionRepository {
   removeConnection(myProfileId: string, otherProfileId: string): Promise<ProfileConnection>;
   markConnectionAsViewed(myProfileId: string, otherProfileId: string): Promise<ProfileConnection>;
   updateConnections(myProfileId: string, othersProfileIds: string[]): Promise<ProfileConnection>;
-  getConnectedProfiles(myProfileId: string, limit?: number): Promise<Profile[]>;
+  getConnectedProfiles(myProfileId: string, limit?: number): Promise<{ profiles: Profile[]; newProfileIds: string[] }>;
   delete(myProfileId: string): Promise<void>;
 }
