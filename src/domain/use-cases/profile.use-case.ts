@@ -34,14 +34,14 @@ export class ProfileUseCase implements IProfileUseCase {
     if (existingProfile.profileImage && existingProfile.profileImage.publicId) {
       await this.imageRepository.deleteImage(existingProfile.profileImage.publicId);
     }
-    
+
     // Upload new image to Cloudinary
     const imageData = await this.imageRepository.uploadImageWithData(imageFile, fileName, 'profile-images');
     const newImage = new Image(imageData.url, imageData.publicId);
-    
+
     // Update profile with new image
     const updatedProfile = await this.profileRepository.updateProfileImage(accountId, newImage);
-    
+
     return updatedProfile;
   }
 
@@ -60,7 +60,7 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update nickname
     const updatedProfile = await this.profileRepository.updateNickname(accountId, nickname);
-    
+
     return updatedProfile;
   }
 
@@ -68,11 +68,11 @@ export class ProfileUseCase implements IProfileUseCase {
     // Validate MBTI type
     const validMbtiTypes = [
       'INTJ', 'INTP', 'ENTJ', 'ENTP',
-      'INFJ', 'INFP', 'ENFJ', 'ENFP', 
+      'INFJ', 'INFP', 'ENFJ', 'ENFP',
       'ISTJ', 'ISFJ', 'ESTJ', 'ESFJ',
       'ISTP', 'ISFP', 'ESTP', 'ESFP'
     ];
-    
+
     if (!validMbtiTypes.includes(mbti.toUpperCase())) {
       throw new Error('Invalid MBTI type. Must be one of: ' + validMbtiTypes.join(', '));
     }
@@ -85,7 +85,7 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update MBTI
     const updatedProfile = await this.profileRepository.updateMbti(accountId, mbti.toUpperCase());
-    
+
     return updatedProfile;
   }
 
@@ -100,18 +100,13 @@ export class ProfileUseCase implements IProfileUseCase {
       throw new Error('Profile not found');
     }
 
-    // Check image count limit (max 6)
-    if (existingProfile.images.length >= 6) {
-      throw new Error('Maximum image limit (6) reached');
-    }
-
     // Upload image to Cloudinary
     const imageData = await this.imageRepository.uploadImageWithData(imageFile, fileName, 'profile-images');
     const newImage = new Image(imageData.url, imageData.publicId);
-    
+
     // Add image to profile
     const updatedProfile = await this.profileRepository.addImage(accountId, newImage);
-    
+
     return updatedProfile;
   }
 
@@ -130,10 +125,10 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Delete image from Cloudinary
     await this.imageRepository.deleteImage(publicId);
-    
+
     // Remove image from profile
     const updatedProfile = await this.profileRepository.removeImage(accountId, publicId);
-    
+
     return updatedProfile;
   }
 
@@ -167,7 +162,7 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Add Q&A to profile
     const updatedProfile = await this.profileRepository.addQna(accountId, question.trim(), answer.trim());
-    
+
     return updatedProfile;
   }
 
@@ -191,7 +186,7 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Remove Q&A from profile
     const updatedProfile = await this.profileRepository.removeQna(accountId, qnaId);
-    
+
     return updatedProfile;
   }
 
@@ -223,14 +218,14 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update Q&A answer
     const updatedProfile = await this.profileRepository.updateQna(accountId, qnaId, answer.trim());
-    
+
     return updatedProfile;
   }
 
   async updateGender(accountId: string, gender: string): Promise<Profile> {
     // Validate gender type
     const validGenderTypes = ['MALE', 'FEMALE'];
-    
+
     if (!validGenderTypes.includes(gender.toUpperCase())) {
       throw new Error('Invalid gender type. Must be one of: ' + validGenderTypes.join(', '));
     }
@@ -243,7 +238,7 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update gender
     const updatedProfile = await this.profileRepository.updateGender(accountId, gender.toUpperCase());
-    
+
     return updatedProfile;
   }
 
@@ -274,7 +269,7 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update physical info
     const updatedProfile = await this.profileRepository.updatePhysicalInfo(accountId, height, weight);
-    
+
     return updatedProfile;
   }
 
@@ -296,7 +291,7 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update introduction
     const updatedProfile = await this.profileRepository.updateIntroduction(accountId, introduction.trim());
-    
+
     return updatedProfile;
   }
 }
