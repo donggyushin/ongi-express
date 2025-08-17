@@ -147,6 +147,10 @@ export class PrismaAccountService implements IAccountRepository {
             where: { profileId: profile.id },
           });
 
+          await tx.profileConnection.deleteMany({
+            where: { myProfileId: profile.id },
+          });
+
           await tx.profile.delete({
             where: { id: profile.id },
           });
