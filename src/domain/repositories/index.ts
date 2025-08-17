@@ -4,3 +4,4 @@ export * from './jwt.repository';
 export * from './image.repository';
 export * from './profile.repository';
 export * from './email-verification.repository';
+export * from './profile-connection.repository';

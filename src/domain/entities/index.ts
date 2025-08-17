@@ -6,3 +6,4 @@ export * from './profile.entity';
 export * from './qna.entity';
 export * from './image.entity';
 export * from './email-verification.entity';
+export * from './profile-connection.entity';

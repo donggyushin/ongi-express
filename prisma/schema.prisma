@@ -53,6 +53,7 @@ model Profile {
   updatedAt    DateTime    @updatedAt @map("updated_at")
   
   qnas         QnA[]
+  connections  ProfileConnection?
 
   @@map("profiles")
 }
@@ -99,6 +100,20 @@ enum MBTIType {
 enum GenderType {
   MALE
   FEMALE
+}
+
+model ProfileConnection {
+  id               String   @id @default(cuid())
+  myProfileId      String   @map("my_profile_id")
+  othersProfileIds String[] @map("others_profile_ids") @default([])
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  myProfile Profile @relation(fields: [myProfileId], references: [id], onDelete: Cascade)
+
+  @@map("profile_connections")
+  @@unique([myProfileId])
+  @@index([myProfileId])
 }
 
 model EmailVerification {

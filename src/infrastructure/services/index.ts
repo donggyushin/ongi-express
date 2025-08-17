@@ -6,3 +6,4 @@ export * from './prisma-account.service';
 export * from './jwt.service';
 export * from './cloudinary.service';
 export * from './prisma-profile.service';
+export * from './prisma-profile-connection.service';
