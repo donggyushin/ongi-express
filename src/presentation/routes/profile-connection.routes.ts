@@ -22,6 +22,12 @@ export class ProfileConnectionRoutes {
     this.router.get('/profiles', AuthMiddleware.verifyToken, (req, res) => 
       this.profileConnectionController.getConnectedProfiles(req, res)
     );
+
+    // POST /profile-connections/generate-for-active-profiles
+    // 최근 활동한 프로필들에 대해 자동으로 연결 생성 (내부 시스템용)
+    this.router.post('/generate-for-active-profiles', (req, res) => 
+      this.profileConnectionController.generateConnectionsForActiveProfiles(req, res)
+    );
   }
 
   getRouter(): Router {

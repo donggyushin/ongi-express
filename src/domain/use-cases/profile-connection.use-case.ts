@@ -4,6 +4,7 @@ import { IProfileConnectionRepository, IProfileRepository } from '@/domain/repos
 export interface IProfileConnectionUseCase {
   addRandomConnection(profileId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }>;
   getConnectedProfiles(accountId: string, limit?: number): Promise<Profile[]>;
+  generateConnectionsForRecentlyActiveProfiles(): Promise<{ processed: number; connectionsCreated: number }>;
 }
 
 export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
@@ -59,5 +60,31 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     }
 
     return await this.profileConnectionRepository.getConnectedProfiles(currentProfile.id, limit);
+  }
+
+  async generateConnectionsForRecentlyActiveProfiles(): Promise<{ processed: number; connectionsCreated: number }> {
+    // 최근 한 달(30일) 이내에 활동한 프로필들 조회
+    const recentlyActiveProfiles = await this.profileRepository.findRecentlyActiveProfiles(30);
+    
+    let processed = 0;
+    let connectionsCreated = 0;
+
+    // 각 프로필에 대해 랜덤 연결 시도
+    for (const profile of recentlyActiveProfiles) {
+      try {
+        const result = await this.addRandomConnection(profile.id);
+        processed++;
+        
+        if (result.addedProfile) {
+          connectionsCreated++;
+        }
+      } catch (error) {
+        // 에러가 발생해도 계속 진행 (예: 성별 미설정, 연결할 프로필 없음 등)
+        console.error(`Failed to create connection for profile ${profile.id}:`, error);
+        processed++;
+      }
+    }
+
+    return { processed, connectionsCreated };
   }
 }

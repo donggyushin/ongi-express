@@ -334,6 +334,29 @@ export class PrismaProfileService implements IProfileRepository {
     return this.mapToProfileEntity(profiles[randomIndex]);
   }
 
+  async findRecentlyActiveProfiles(daysAgo: number): Promise<Profile[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - daysAgo);
+
+    const profiles = await this.prisma.profile.findMany({
+      where: {
+        lastTokenAuthAt: {
+          gte: cutoffDate
+        }
+      },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      },
+      orderBy: {
+        lastTokenAuthAt: 'desc'
+      }
+    });
+
+    return profiles.map(profile => this.mapToProfileEntity(profile));
+  }
+
   async update(id: string, data: any): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },

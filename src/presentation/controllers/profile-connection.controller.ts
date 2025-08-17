@@ -98,4 +98,31 @@ export class ProfileConnectionController {
       res.status(500).json(response);
     }
   }
+
+  async generateConnectionsForActiveProfiles(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this.profileConnectionUseCase.generateConnectionsForRecentlyActiveProfiles();
+
+      const response: ApiResponse<{
+        processed: number;
+        connectionsCreated: number;
+        message: string;
+      }> = {
+        success: true,
+        data: {
+          processed: result.processed,
+          connectionsCreated: result.connectionsCreated,
+          message: `처리된 프로필: ${result.processed}개, 생성된 연결: ${result.connectionsCreated}개`
+        }
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+      res.status(500).json(response);
+    }
+  }
 }
