@@ -265,11 +265,11 @@ export class PrismaProfileService implements IProfileRepository {
 
   async updatePhysicalInfo(accountId: string, height?: number, weight?: number): Promise<Profile> {
     const updateData: any = {};
-    
+
     if (height !== undefined) {
       updateData.height = height;
     }
-    
+
     if (weight !== undefined) {
       updateData.weight = weight;
     }
