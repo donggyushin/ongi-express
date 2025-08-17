@@ -2,18 +2,15 @@ import { PrismaClient } from '../../generated/prisma';
 import { IProfileConnectionRepository } from '@/domain/repositories';
 import { ProfileConnection, ConnectedProfile } from '@/domain/entities';
 
-interface ConnectedProfileData {
-  profileId: string;
-  addedAt: string;
-  isNew: boolean;
-}
-
 export class PrismaProfileConnectionService implements IProfileConnectionRepository {
   constructor(private prisma: PrismaClient) {}
 
   async findByProfileId(myProfileId: string): Promise<ProfileConnection | null> {
     const connection = await this.prisma.profileConnection.findUnique({
-      where: { myProfileId }
+      where: { myProfileId },
+      include: {
+        connectedProfiles: true
+      }
     });
 
     return connection ? this.mapToEntity(connection) : null;
@@ -22,8 +19,10 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
   async create(myProfileId: string): Promise<ProfileConnection> {
     const connection = await this.prisma.profileConnection.create({
       data: {
-        myProfileId,
-        otherProfiles: []
+        myProfileId
+      },
+      include: {
+        connectedProfiles: true
       }
     });
 
@@ -32,94 +31,130 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
 
   async addConnection(myProfileId: string, otherProfileId: string): Promise<ProfileConnection> {
     const existing = await this.prisma.profileConnection.findUnique({
-      where: { myProfileId }
+      where: { myProfileId },
+      include: {
+        connectedProfiles: true
+      }
     });
 
     if (!existing) {
-      // Create new connection if it doesn't exist
-      const newConnectedProfile = {
-        profileId: otherProfileId,
-        addedAt: new Date().toISOString(),
-        isNew: true
-      };
-
+      // Create new ProfileConnection with the connected profile
       const connection = await this.prisma.profileConnection.create({
         data: {
           myProfileId,
-          otherProfiles: [newConnectedProfile]
+          connectedProfiles: {
+            create: {
+              profileId: otherProfileId,
+              addedAt: new Date(),
+              isNew: true
+            }
+          }
+        },
+        include: {
+          connectedProfiles: true
         }
       });
       return this.mapToEntity(connection);
     }
 
-    // Parse existing connections
-    const otherProfiles = Array.isArray(existing.otherProfiles) 
-      ? existing.otherProfiles as unknown as ConnectedProfileData[]
-      : [];
-
     // Check if connection already exists
-    const alreadyConnected = otherProfiles.some(cp => cp.profileId === otherProfileId);
+    const alreadyConnected = existing.connectedProfiles.some(cp => cp.profileId === otherProfileId);
     if (alreadyConnected) {
       return this.mapToEntity(existing);
     }
 
-    // Add new connection
-    const newConnectedProfile = {
-      profileId: otherProfileId,
-      addedAt: new Date().toISOString(),
-      isNew: true
-    };
-
-    const updatedProfiles = [...otherProfiles, newConnectedProfile];
-
-    const connection = await this.prisma.profileConnection.update({
-      where: { myProfileId },
-      data: { otherProfiles: updatedProfiles as any }
-    });
-
-    return this.mapToEntity(connection);
-  }
-
-  async removeConnection(myProfileId: string, otherProfileId: string): Promise<ProfileConnection> {
-    const existing = await this.prisma.profileConnection.findUnique({
-      where: { myProfileId }
-    });
-
-    if (!existing) {
-      throw new Error('Profile connection not found');
-    }
-
-    const otherProfiles = Array.isArray(existing.otherProfiles) 
-      ? existing.otherProfiles as unknown as ConnectedProfileData[]
-      : [];
-
-    const updatedProfiles = otherProfiles.filter(cp => cp.profileId !== otherProfileId);
-
-    const connection = await this.prisma.profileConnection.update({
-      where: { myProfileId },
-      data: { otherProfiles: updatedProfiles as any }
-    });
-
-    return this.mapToEntity(connection);
-  }
-
-  async updateConnections(myProfileId: string, othersProfileIds: string[]): Promise<ProfileConnection> {
-    const otherProfiles = othersProfileIds.map(profileId => ({
-      profileId,
-      addedAt: new Date().toISOString(),
-      isNew: true
-    }));
-
-    const connection = await this.prisma.profileConnection.upsert({
-      where: { myProfileId },
-      update: { otherProfiles: otherProfiles as any },
-      create: {
-        myProfileId,
-        otherProfiles: otherProfiles as any
+    // Add new connected profile
+    await this.prisma.connectedProfile.create({
+      data: {
+        profileConnectionId: existing.id,
+        profileId: otherProfileId,
+        addedAt: new Date(),
+        isNew: true
       }
     });
 
-    return this.mapToEntity(connection);
+    // Fetch updated connection
+    const updatedConnection = await this.prisma.profileConnection.findUnique({
+      where: { myProfileId },
+      include: {
+        connectedProfiles: true
+      }
+    });
+
+    return this.mapToEntity(updatedConnection!);
+  }
+
+  async removeConnection(myProfileId: string, otherProfileId: string): Promise<ProfileConnection> {
+    const connection = await this.prisma.profileConnection.findUnique({
+      where: { myProfileId },
+      include: {
+        connectedProfiles: true
+      }
+    });
+
+    if (!connection) {
+      throw new Error('Profile connection not found');
+    }
+
+    // Delete the specific connected profile
+    await this.prisma.connectedProfile.deleteMany({
+      where: {
+        profileConnectionId: connection.id,
+        profileId: otherProfileId
+      }
+    });
+
+    // Fetch updated connection
+    const updatedConnection = await this.prisma.profileConnection.findUnique({
+      where: { myProfileId },
+      include: {
+        connectedProfiles: true
+      }
+    });
+
+    return this.mapToEntity(updatedConnection!);
+  }
+
+  async updateConnections(myProfileId: string, othersProfileIds: string[]): Promise<ProfileConnection> {
+    const connection = await this.prisma.profileConnection.upsert({
+      where: { myProfileId },
+      update: {},
+      create: {
+        myProfileId
+      },
+      include: {
+        connectedProfiles: true
+      }
+    });
+
+    // Delete all existing connected profiles
+    await this.prisma.connectedProfile.deleteMany({
+      where: {
+        profileConnectionId: connection.id
+      }
+    });
+
+    // Create new connected profiles
+    if (othersProfileIds.length > 0) {
+      await this.prisma.connectedProfile.createMany({
+        data: othersProfileIds.map(profileId => ({
+          profileConnectionId: connection.id,
+          profileId,
+          addedAt: new Date(),
+          isNew: true
+        }))
+      });
+    }
+
+    // Fetch updated connection
+    const updatedConnection = await this.prisma.profileConnection.findUnique({
+      where: { myProfileId },
+      include: {
+        connectedProfiles: true
+      }
+    });
+
+    return this.mapToEntity(updatedConnection!);
   }
 
   async delete(myProfileId: string): Promise<void> {
@@ -129,17 +164,13 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
   }
 
   private mapToEntity(connection: any): ProfileConnection {
-    const otherProfiles = Array.isArray(connection.otherProfiles) 
-      ? connection.otherProfiles as unknown as ConnectedProfileData[]
-      : [];
-
-    const connectedProfiles = otherProfiles.map(cp => 
+    const connectedProfiles = connection.connectedProfiles?.map((cp: any) => 
       new ConnectedProfile(
         cp.profileId,
-        new Date(cp.addedAt),
+        cp.addedAt,
         cp.isNew
       )
-    );
+    ) || [];
 
     return new ProfileConnection(
       connection.id,

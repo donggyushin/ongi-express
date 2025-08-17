@@ -54,6 +54,7 @@ model Profile {
   
   qnas         QnA[]
   connections  ProfileConnection?
+  connectedInProfiles ConnectedProfile[]
 
   @@map("profiles")
 }
@@ -105,15 +106,33 @@ enum GenderType {
 model ProfileConnection {
   id           String   @id @default(cuid())
   myProfileId  String   @map("my_profile_id")
-  otherProfiles Json     @map("other_profiles") @default("[]")
   createdAt    DateTime @default(now()) @map("created_at")
   updatedAt    DateTime @updatedAt @map("updated_at")
 
-  myProfile Profile @relation(fields: [myProfileId], references: [id], onDelete: Cascade)
+  myProfile        Profile            @relation(fields: [myProfileId], references: [id], onDelete: Cascade)
+  connectedProfiles ConnectedProfile[]
 
   @@map("profile_connections")
   @@unique([myProfileId])
   @@index([myProfileId])
+}
+
+model ConnectedProfile {
+  id                 String            @id @default(cuid())
+  profileConnectionId String            @map("profile_connection_id")
+  profileId          String            @map("profile_id")
+  addedAt            DateTime          @default(now()) @map("added_at")
+  isNew              Boolean           @default(true) @map("is_new")
+  createdAt          DateTime          @default(now()) @map("created_at")
+  updatedAt          DateTime          @updatedAt @map("updated_at")
+
+  profileConnection ProfileConnection @relation(fields: [profileConnectionId], references: [id], onDelete: Cascade)
+  profile           Profile           @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@map("connected_profiles")
+  @@unique([profileConnectionId, profileId])
+  @@index([profileConnectionId])
+  @@index([profileId])
 }
 
 model EmailVerification {
