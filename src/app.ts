@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 
 import { Container } from '@/shared/utils';
 import { ErrorMiddleware } from '@/presentation/middlewares';
-import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes } from '@/presentation/routes';
+import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes } from '@/presentation/routes';
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
 
 dotenv.config();

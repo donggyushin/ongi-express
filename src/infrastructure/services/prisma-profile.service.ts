@@ -308,6 +308,32 @@ export class PrismaProfileService implements IProfileRepository {
     });
   }
 
+  async findRandomProfileByGender(excludeGender: string, excludeProfileIds: string[]): Promise<Profile | null> {
+    const profiles = await this.prisma.profile.findMany({
+      where: {
+        AND: [
+          { gender: { not: excludeGender as any } },
+          { id: { notIn: excludeProfileIds } },
+          { gender: { not: null } }
+        ]
+      },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      },
+      take: 10
+    });
+
+    if (profiles.length === 0) {
+      return null;
+    }
+
+    // 랜덤하게 선택
+    const randomIndex = Math.floor(Math.random() * profiles.length);
+    return this.mapToProfileEntity(profiles[randomIndex]);
+  }
+
   async update(id: string, data: any): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },

@@ -4,3 +4,4 @@ export * from './database.routes';
 export * from './account.routes';
 export * from './profile.routes';
 export * from './qna-examples.routes';
+export * from './profile-connection.routes';

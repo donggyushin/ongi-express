@@ -4,3 +4,4 @@ export * from './account.use-case';
 export * from './refresh-token.use-case';
 export * from './profile.use-case';
 export * from './qna-examples.use-case';
+export * from './profile-connection.use-case';

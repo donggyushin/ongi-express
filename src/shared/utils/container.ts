@@ -1,4 +1,4 @@
-import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase } from '@/domain/use-cases';
+import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
 import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository } from '@/domain/repositories';
 import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService } from '@/infrastructure/services';
@@ -6,10 +6,10 @@ import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma
 import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
 import { GmailService } from '@/infrastructure/services/gmail.service';
 import { IDatabaseService } from '@/shared/types';
-import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController, QnAExamplesController } from '@/presentation/controllers';
+import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController, QnAExamplesController, ProfileConnectionController } from '@/presentation/controllers';
 import { EmailVerificationController } from '@/presentation/controllers/email-verification.controller';
 import { ErrorMiddleware } from '@/presentation/middlewares';
-import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes } from '@/presentation/routes';
+import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes } from '@/presentation/routes';
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
 
 export class Container {
@@ -62,6 +62,10 @@ export class Container {
       this.get<IEmailService>('emailService')
     ));
     this.services.set('qnaExamplesUseCase', new QnAExamplesUseCase());
+    this.services.set('profileConnectionUseCase', new ProfileConnectionUseCase(
+      this.get<IProfileConnectionRepository>('profileConnectionRepository'),
+      this.get<IProfileRepository>('profileRepository')
+    ));
 
     // Controllers
     this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));
@@ -76,6 +80,7 @@ export class Container {
     this.services.set('profileController', new ProfileController(this.get<IProfileUseCase>('profileUseCase')));
     this.services.set('emailVerificationController', new EmailVerificationController(this.get<IEmailVerificationUseCase>('emailVerificationUseCase')));
     this.services.set('qnaExamplesController', new QnAExamplesController(this.get<IQnAExamplesUseCase>('qnaExamplesUseCase')));
+    this.services.set('profileConnectionController', new ProfileConnectionController(this.get<IProfileConnectionUseCase>('profileConnectionUseCase')));
 
     // Middlewares
     this.services.set('errorMiddleware', new ErrorMiddleware(this.get<ILoggerService>('logger')));
@@ -88,6 +93,7 @@ export class Container {
     this.services.set('profileRoutes', new ProfileRoutes(this.get<ProfileController>('profileController')));
     this.services.set('emailVerificationRoutes', new EmailVerificationRoutes(this.get<EmailVerificationController>('emailVerificationController')));
     this.services.set('qnaExamplesRoutes', new QnAExamplesRoutes(this.get<QnAExamplesController>('qnaExamplesController')));
+    this.services.set('profileConnectionRoutes', new ProfileConnectionRoutes(this.get<ProfileConnectionController>('profileConnectionController')));
   }
 
   get<T>(serviceName: string): T {
