@@ -4,6 +4,7 @@ import { IProfileConnectionRepository, IProfileRepository } from '@/domain/repos
 export interface IProfileConnectionUseCase {
   addRandomConnection(profileId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }>;
   getConnectedProfiles(accountId: string, limit?: number): Promise<Profile[]>;
+  markConnectionAsViewed(accountId: string, otherProfileId: string): Promise<ProfileConnection>;
   generateConnectionsForRecentlyActiveProfiles(): Promise<{ processed: number; connectionsCreated: number }>;
 }
 
@@ -65,6 +66,16 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     }
 
     return await this.profileConnectionRepository.getConnectedProfiles(currentProfile.id, limit);
+  }
+
+  async markConnectionAsViewed(accountId: string, otherProfileId: string): Promise<ProfileConnection> {
+    // accountId로 프로필 조회
+    const currentProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!currentProfile) {
+      throw new Error('Profile not found');
+    }
+
+    return await this.profileConnectionRepository.markConnectionAsViewed(currentProfile.id, otherProfileId);
   }
 
   async generateConnectionsForRecentlyActiveProfiles(): Promise<{ processed: number; connectionsCreated: number }> {

@@ -115,6 +115,40 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
     return this.mapToEntity(updatedConnection!);
   }
 
+  async markConnectionAsViewed(myProfileId: string, otherProfileId: string): Promise<ProfileConnection> {
+    const connection = await this.prisma.profileConnection.findUnique({
+      where: { myProfileId },
+      include: {
+        connectedProfiles: true
+      }
+    });
+
+    if (!connection) {
+      throw new Error('Profile connection not found');
+    }
+
+    // Update the specific connected profile's isNew to false
+    await this.prisma.connectedProfile.updateMany({
+      where: {
+        profileConnectionId: connection.id,
+        profileId: otherProfileId
+      },
+      data: {
+        isNew: false
+      }
+    });
+
+    // Fetch updated connection
+    const updatedConnection = await this.prisma.profileConnection.findUnique({
+      where: { myProfileId },
+      include: {
+        connectedProfiles: true
+      }
+    });
+
+    return this.mapToEntity(updatedConnection!);
+  }
+
   async updateConnections(myProfileId: string, othersProfileIds: string[]): Promise<ProfileConnection> {
     const connection = await this.prisma.profileConnection.upsert({
       where: { myProfileId },

@@ -23,6 +23,12 @@ export class ProfileConnectionRoutes {
       this.profileConnectionController.getConnectedProfiles(req, res)
     );
 
+    // PATCH /profile-connections/:otherProfileId/mark-viewed
+    // 특정 연결된 프로필을 확인함으로 표시 (isNew를 false로 변경)
+    this.router.patch('/:otherProfileId/mark-viewed', AuthMiddleware.verifyToken, (req, res) => 
+      this.profileConnectionController.markConnectionAsViewed(req, res)
+    );
+
     // POST /profile-connections/generate-for-active-profiles
     // 최근 활동한 프로필들에 대해 자동으로 연결 생성 (내부 시스템용)
     this.router.post('/generate-for-active-profiles', (req, res) => 
