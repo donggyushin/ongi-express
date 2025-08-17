@@ -20,20 +20,25 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
       throw new Error('Profile not found');
     }
 
-    // 2. ProfileConnection 조회 또는 생성
+    // 2. 현재 프로필이 매칭 조건을 만족하는지 확인
+    if (!currentProfile.isCompleteForMatching()) {
+      throw new Error('Current profile is not complete for matching. Required: profileImage, mbti, qnas, gender, height, weight, introduction');
+    }
+
+    // 3. ProfileConnection 조회 또는 생성
     let connection = await this.profileConnectionRepository.findByProfileId(profileId);
     if (!connection) {
       connection = await this.profileConnectionRepository.create(profileId);
     }
 
-    // 3. 현재 프로필의 성별과 다르고, 이미 연결되지 않은 프로필 조회
+    // 4. 현재 프로필의 성별과 다르고, 이미 연결되지 않은 완성된 프로필 조회
     const currentGender = currentProfile.gender;
     if (!currentGender) {
       throw new Error('Current profile must have gender set');
     }
 
     const excludeProfileIds = [...connection.connectedProfileIds, profileId]; // 자기 자신도 제외
-    const randomProfile = await this.profileRepository.findRandomProfileByGender(
+    const randomProfile = await this.profileRepository.findRandomCompleteProfileByGender(
       currentGender,
       excludeProfileIds
     );
@@ -43,7 +48,7 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
       return { connection, addedProfile: null };
     }
 
-    // 4. 찾은 프로필을 connection에 추가
+    // 5. 찾은 프로필을 connection에 추가
     const updatedConnection = await this.profileConnectionRepository.addConnection(
       profileId,
       randomProfile.id

@@ -334,6 +334,38 @@ export class PrismaProfileService implements IProfileRepository {
     return this.mapToProfileEntity(profiles[randomIndex]);
   }
 
+  async findRandomCompleteProfileByGender(excludeGender: string, excludeProfileIds: string[]): Promise<Profile | null> {
+    const profiles = await this.prisma.profile.findMany({
+      where: {
+        AND: [
+          { gender: { not: excludeGender as any } },
+          { id: { notIn: excludeProfileIds } },
+          { gender: { not: null } },
+          { mbti: { not: null } },
+          { height: { not: null } },
+          { weight: { not: null } },
+          { introduction: { not: null } },
+          { profileImage: { isNot: null } },
+          { qnas: { some: {} } } // QnA가 1개 이상 있는 조건
+        ]
+      },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      },
+      take: 10
+    });
+
+    if (profiles.length === 0) {
+      return null;
+    }
+
+    // 랜덤하게 선택
+    const randomIndex = Math.floor(Math.random() * profiles.length);
+    return this.mapToProfileEntity(profiles[randomIndex]);
+  }
+
   async findRecentlyActiveProfiles(daysAgo: number): Promise<Profile[]> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - daysAgo);

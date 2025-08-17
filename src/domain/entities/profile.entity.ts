@@ -78,6 +78,22 @@ export class Profile {
     }
   }
 
+  /**
+   * 프로필이 매칭 가능한 완성도를 가지고 있는지 확인
+   * 필수 조건: profileImage, mbti, qnas(1개 이상), gender, height, weight, introduction
+   */
+  isCompleteForMatching(): boolean {
+    return !!(
+      this.profileImage &&
+      this.mbti &&
+      this.qnas.length > 0 &&
+      this.gender &&
+      this.height &&
+      this.weight &&
+      this.introduction
+    );
+  }
+
   toJSON() {
     return {
       id: this.id,
