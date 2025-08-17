@@ -37,6 +37,7 @@ class App {
     const profileRoutes = this.container.get<ProfileRoutes>('profileRoutes');
     const emailVerificationRoutes = this.container.get<EmailVerificationRoutes>('emailVerificationRoutes');
     const qnaExamplesRoutes = this.container.get<QnAExamplesRoutes>('qnaExamplesRoutes');
+    const profileConnectionRoutes = this.container.get<ProfileConnectionRoutes>('profileConnectionRoutes');
 
     this.app.use('/', welcomeRoutes.getRouter());
     this.app.use('/health', healthRoutes.getRouter());
@@ -45,6 +46,7 @@ class App {
     this.app.use('/profiles', profileRoutes.getRouter());
     this.app.use('/email-verification', emailVerificationRoutes.getRouter());
     this.app.use('/qna', qnaExamplesRoutes.getRouter());
+    this.app.use('/profile-connections', profileConnectionRoutes.getRouter());
   }
 
   private initializeErrorHandling(): void {
