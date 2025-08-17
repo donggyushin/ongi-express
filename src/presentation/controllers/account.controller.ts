@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ICreateAccountUseCase, IGetAccountUseCase, IRefreshTokenUseCase } from '@/domain/use-cases';
+import { ICreateAccountUseCase, IGetAccountUseCase, IRefreshTokenUseCase, IDeleteAccountUseCase } from '@/domain/use-cases';
 import { AccountType } from '@/domain/entities';
 import { ApiResponse, CreateAccountRequest, AuthTokensResponse, RefreshTokenRequest } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
@@ -8,7 +8,8 @@ export class AccountController {
   constructor(
     private readonly createAccountUseCase: ICreateAccountUseCase,
     private readonly getAccountUseCase: IGetAccountUseCase,
-    private readonly refreshTokenUseCase: IRefreshTokenUseCase
+    private readonly refreshTokenUseCase: IRefreshTokenUseCase,
+    private readonly deleteAccountUseCase: IDeleteAccountUseCase
   ) {}
 
   async createAccount(req: Request, res: Response): Promise<void> {
@@ -129,6 +130,45 @@ export class AccountController {
       const response: ApiResponse = {
         success: false,
         error: 'Failed to retrieve account'
+      };
+      
+      res.status(500).json(response);
+    }
+  }
+
+  async deleteAccount(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.userId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'User ID not found in token'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      const deleted = await this.deleteAccountUseCase.execute(req.userId);
+      
+      if (!deleted) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Account not found or failed to delete'
+        };
+        res.status(404).json(response);
+        return;
+      }
+      
+      const response: ApiResponse = {
+        success: true,
+        message: '계정이 성공적으로 삭제되었습니다'
+      };
+      
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Delete account error:', error);
+      const response: ApiResponse = {
+        success: false,
+        error: '계정 삭제에 실패했습니다'
       };
       
       res.status(500).json(response);

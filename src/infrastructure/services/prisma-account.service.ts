@@ -120,4 +120,27 @@ export class PrismaAccountService implements IAccountRepository {
       throw new Error('Failed to find account');
     }
   }
+
+  async deleteById(id: string): Promise<boolean> {
+    try {
+      await this.prisma.$transaction(async (tx) => {
+        const account = await tx.account.findUnique({
+          where: { id },
+        });
+
+        if (!account) {
+          throw new Error('Account not found');
+        }
+
+        await tx.account.delete({
+          where: { id },
+        });
+      });
+      
+      return true;
+    } catch (error) {
+      console.error('Error deleting account:', error);
+      return false;
+    }
+  }
 }

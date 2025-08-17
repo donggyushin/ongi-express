@@ -13,6 +13,7 @@ export class AccountRoutes {
     this.router.post('/', (req, res) => this.accountController.createAccount(req, res));
     this.router.post('/refresh', (req, res) => this.accountController.refreshToken(req, res));
     this.router.get('/me', AuthMiddleware.verifyToken, (req, res) => this.accountController.getAccount(req, res));
+    this.router.delete('/me', AuthMiddleware.verifyToken, (req, res) => this.accountController.deleteAccount(req, res));
   }
 
   getRouter(): Router {

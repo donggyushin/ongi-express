@@ -1,4 +1,4 @@
-import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase } from '@/domain/use-cases';
+import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
 import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository } from '@/domain/repositories';
 import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService } from '@/infrastructure/services';
@@ -49,6 +49,7 @@ export class Container {
       this.get<IJwtRepository>('jwtRepository')
     ));
     this.services.set('getAccountUseCase', new GetAccountUseCase(this.get<IAccountRepository>('accountRepository')));
+    this.services.set('deleteAccountUseCase', new DeleteAccountUseCase(this.get<IAccountRepository>('accountRepository')));
     this.services.set('refreshTokenUseCase', new RefreshTokenUseCase(this.get<IJwtRepository>('jwtRepository')));
     this.services.set('profileUseCase', new ProfileUseCase(
       this.get<IProfileRepository>('profileRepository'),
@@ -68,7 +69,8 @@ export class Container {
     this.services.set('accountController', new AccountController(
       this.get<ICreateAccountUseCase>('createAccountUseCase'),
       this.get<IGetAccountUseCase>('getAccountUseCase'),
-      this.get<IRefreshTokenUseCase>('refreshTokenUseCase')
+      this.get<IRefreshTokenUseCase>('refreshTokenUseCase'),
+      this.get<IDeleteAccountUseCase>('deleteAccountUseCase')
     ));
     this.services.set('profileController', new ProfileController(this.get<IProfileUseCase>('profileUseCase')));
     this.services.set('emailVerificationController', new EmailVerificationController(this.get<IEmailVerificationUseCase>('emailVerificationUseCase')));
