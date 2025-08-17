@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { ApiResponse } from '@/shared/types';
-import { Container } from '@/shared/utils/container';
+import { Container } from '@/shared/utils';
 import { IProfileRepository } from '@/domain/repositories';
 
 interface AuthenticatedRequest extends Request {
@@ -10,7 +10,6 @@ interface AuthenticatedRequest extends Request {
 
 export class AuthMiddleware {
   private static secretKey = process.env.JWT_SECRET || 'your-secret-key-here';
-  private static container = Container.getInstance();
 
   static async verifyToken(req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> {
     try {
@@ -42,7 +41,8 @@ export class AuthMiddleware {
 
       // Update lastTokenAuthAt for the user's profile
       try {
-        const profileRepository = AuthMiddleware.container.get<IProfileRepository>('profileRepository');
+        const container = Container.getInstance();
+        const profileRepository = container.get<IProfileRepository>('profileRepository');
         await profileRepository.updateLastTokenAuth(decoded.userId);
       } catch (updateError) {
         // Log error but don't fail the authentication
