@@ -11,9 +11,9 @@ export class ProfileConnectionRoutes {
   }
 
   private initializeRoutes(): void {
-    // POST /profile-connections/add-random
-    // AuthMiddleware 사용하여 토큰에서 userId 추출
-    this.router.post('/add-random', AuthMiddleware.verifyToken, (req, res) => 
+    // POST /profile-connections/:profileId/add-random
+    // AuthMiddleware를 사용하지 않음 (내부 시스템 호출용)
+    this.router.post('/:profileId/add-random', (req, res) => 
       this.profileConnectionController.addRandomConnection(req, res)
     );
 

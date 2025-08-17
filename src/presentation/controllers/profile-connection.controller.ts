@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { IProfileConnectionUseCase } from '@/domain/use-cases';
 import { ApiResponse } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares';
@@ -8,20 +8,20 @@ export class ProfileConnectionController {
     private profileConnectionUseCase: IProfileConnectionUseCase
   ) {}
 
-  async addRandomConnection(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async addRandomConnection(req: Request, res: Response): Promise<void> {
     try {
-      const userId = req.userId;
+      const { profileId } = req.params;
 
-      if (!userId) {
+      if (!profileId) {
         const response: ApiResponse<null> = {
           success: false,
-          error: 'User authentication required'
+          error: 'Profile ID is required'
         };
-        res.status(401).json(response);
+        res.status(400).json(response);
         return;
       }
 
-      const result = await this.profileConnectionUseCase.addRandomConnection(userId);
+      const result = await this.profileConnectionUseCase.addRandomConnection(profileId);
 
       const response: ApiResponse<{
         connection: any;
