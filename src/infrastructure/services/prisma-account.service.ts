@@ -132,6 +132,24 @@ export class PrismaAccountService implements IAccountRepository {
           throw new Error('Account not found');
         }
 
+        const profile = await tx.profile.findUnique({
+          where: { accountId: id },
+        });
+
+        if (profile) {
+          await tx.qnA.deleteMany({
+            where: { profileId: profile.id },
+          });
+
+          await tx.image.deleteMany({
+            where: { profileId: profile.id },
+          });
+
+          await tx.profile.delete({
+            where: { id: profile.id },
+          });
+        }
+
         await tx.account.delete({
           where: { id },
         });
