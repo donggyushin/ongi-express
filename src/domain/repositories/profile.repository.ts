@@ -14,5 +14,6 @@ export interface IProfileRepository {
   addQna(accountId: string, question: string, answer: string): Promise<Profile>;
   removeQna(accountId: string, qnaId: string): Promise<Profile>;
   updateQna(accountId: string, qnaId: string, answer: string): Promise<Profile>;
+  updateLastTokenAuth(accountId: string): Promise<void>;
   update(id: string, data: Partial<Profile>): Promise<Profile>;
 }

@@ -301,6 +301,13 @@ export class PrismaProfileService implements IProfileRepository {
     return this.mapToProfileEntity(updatedProfile);
   }
 
+  async updateLastTokenAuth(accountId: string): Promise<void> {
+    await this.prisma.profile.update({
+      where: { accountId },
+      data: { lastTokenAuthAt: new Date() }
+    });
+  }
+
   async update(id: string, data: any): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },
@@ -328,6 +335,7 @@ export class PrismaProfileService implements IProfileRepository {
       profile.gender as any,
       profile.height,
       profile.weight,
+      profile.lastTokenAuthAt,
       profile.qnas.map((qna: any) => new QnA(
         qna.id,
         qna.question,

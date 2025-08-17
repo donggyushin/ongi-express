@@ -48,6 +48,7 @@ model Profile {
   gender       GenderType?
   height       Float?
   weight       Float?
+  lastTokenAuthAt DateTime? @map("last_token_auth_at")
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
   

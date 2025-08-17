@@ -45,6 +45,7 @@ export class Profile {
     public readonly gender: GenderType | null = null,
     public readonly height: number | null = null,
     public readonly weight: number | null = null,
+    public readonly lastTokenAuthAt: Date | null = null,
     public readonly qnas: QnA[] = [],
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
@@ -90,6 +91,7 @@ export class Profile {
       gender: this.gender,
       height: this.height,
       weight: this.weight,
+      lastTokenAuthAt: this.lastTokenAuthAt?.toISOString() ?? null,
       bodyType: this.bodyType,
       qnas: this.qnas.map(qna => qna.toJSON()),
       createdAt: this.createdAt.toISOString(),
