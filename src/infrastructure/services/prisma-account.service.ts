@@ -31,7 +31,7 @@ export class PrismaAccountService implements IAccountRepository {
 
         return { account, profile };
       });
-      
+
       const profile = new Profile(
         result.profile.id,
         result.profile.accountId,
@@ -47,6 +47,7 @@ export class PrismaAccountService implements IAccountRepository {
         result.profile.gender as any,
         result.profile.height,
         result.profile.weight,
+        result.profile.lastTokenAuthAt,
         result.profile.qnas.map(qna => new QnA(
           qna.id,
           qna.question,
@@ -57,7 +58,7 @@ export class PrismaAccountService implements IAccountRepository {
         result.profile.createdAt,
         result.profile.updatedAt
       );
-      
+
       return new Account(result.account.id, result.account.type as AccountType, profile, result.account.createdAt);
     } catch (error) {
       console.error('Error creating account:', error);
@@ -70,7 +71,7 @@ export class PrismaAccountService implements IAccountRepository {
       const account = await this.prisma.account.findUnique({
         where: { id },
       });
-      
+
       if (!account) {
         return null;
       }
@@ -83,11 +84,11 @@ export class PrismaAccountService implements IAccountRepository {
           images: true
         }
       });
-      
+
       if (!profile) {
         return null;
       }
-      
+
       const profileEntity = new Profile(
         profile.id,
         profile.accountId,
@@ -103,6 +104,7 @@ export class PrismaAccountService implements IAccountRepository {
         profile.gender as any,
         profile.height,
         profile.weight,
+        profile.lastTokenAuthAt,
         profile.qnas.map(qna => new QnA(
           qna.id,
           qna.question,
@@ -113,7 +115,7 @@ export class PrismaAccountService implements IAccountRepository {
         profile.createdAt,
         profile.updatedAt
       );
-      
+
       return new Account(account.id, account.type as AccountType, profileEntity, account.createdAt);
     } catch (error) {
       console.error('Error finding account by id:', error);
@@ -154,7 +156,7 @@ export class PrismaAccountService implements IAccountRepository {
           where: { id },
         });
       });
-      
+
       return true;
     } catch (error) {
       console.error('Error deleting account:', error);
