@@ -2,7 +2,8 @@ import { ProfileConnection, Profile } from '@/domain/entities';
 import { IProfileConnectionRepository, IProfileRepository } from '@/domain/repositories';
 
 export interface IProfileConnectionUseCase {
-  addRandomConnection(profileId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }>;
+  addRandomConnection(accountId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }>;
+  getConnectedProfiles(accountId: string, limit?: number): Promise<Profile[]>;
 }
 
 export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
@@ -48,5 +49,9 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     );
 
     return { connection: updatedConnection, addedProfile: randomProfile };
+  }
+
+  async getConnectedProfiles(profileId: string, limit?: number): Promise<Profile[]> {
+    return await this.profileConnectionRepository.getConnectedProfiles(profileId, limit);
   }
 }

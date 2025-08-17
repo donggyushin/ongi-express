@@ -1,6 +1,6 @@
 import { PrismaClient } from '../../generated/prisma';
 import { IProfileConnectionRepository } from '@/domain/repositories';
-import { ProfileConnection, ConnectedProfile } from '@/domain/entities';
+import { ProfileConnection, ConnectedProfile, Profile, Image, QnA } from '@/domain/entities';
 
 export class PrismaProfileConnectionService implements IProfileConnectionRepository {
   constructor(private prisma: PrismaClient) {}
@@ -157,6 +157,35 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
     return this.mapToEntity(updatedConnection!);
   }
 
+  async getConnectedProfiles(myProfileId: string, limit: number = 100): Promise<Profile[]> {
+    const connection = await this.prisma.profileConnection.findUnique({
+      where: { myProfileId },
+      include: {
+        connectedProfiles: {
+          include: {
+            profile: {
+              include: {
+                qnas: true,
+                profileImage: true,
+                images: true
+              }
+            }
+          },
+          orderBy: {
+            addedAt: 'desc'
+          },
+          take: Math.min(limit, 100) // 최대 100개로 제한
+        }
+      }
+    });
+
+    if (!connection) {
+      return [];
+    }
+
+    return connection.connectedProfiles.map(cp => this.mapProfileToEntity(cp.profile));
+  }
+
   async delete(myProfileId: string): Promise<void> {
     await this.prisma.profileConnection.delete({
       where: { myProfileId }
@@ -178,6 +207,32 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
       connectedProfiles,
       connection.createdAt,
       connection.updatedAt
+    );
+  }
+
+  private mapProfileToEntity(profile: any): Profile {
+    return new Profile(
+      profile.id,
+      profile.accountId,
+      profile.nickname,
+      profile.email,
+      profile.introduction,
+      profile.profileImage ? new Image(profile.profileImage.url, profile.profileImage.publicId) : null,
+      profile.images.map((img: any) => new Image(img.url, img.publicId)),
+      profile.mbti as any,
+      profile.gender as any,
+      profile.height,
+      profile.weight,
+      profile.lastTokenAuthAt,
+      profile.qnas.map((qna: any) => new QnA(
+        qna.id,
+        qna.question,
+        qna.answer,
+        qna.createdAt,
+        qna.updatedAt
+      )),
+      profile.createdAt,
+      profile.updatedAt
     );
   }
 }
