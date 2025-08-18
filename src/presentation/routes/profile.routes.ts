@@ -11,6 +11,9 @@ export class ProfileRoutes {
   }
 
   private initializeRoutes(): void {
+    // GET /profiles/:id - Get profile by ID (public endpoint)
+    this.router.get('/:id', this.profileController.getProfileById);
+
     // GET /profiles/me - Get current user profile
     this.router.get('/me', AuthMiddleware.verifyToken, this.profileController.getProfile);
 

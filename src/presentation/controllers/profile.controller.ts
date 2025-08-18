@@ -158,6 +158,45 @@ export class ProfileController {
     }
   };
 
+  public getProfileById = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params;
+
+      if (!id) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Profile ID is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const profile = await this.profileUseCase.getProfileById(id);
+
+      if (!profile) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: profile
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get profile'
+      };
+      res.status(500).json(response);
+    }
+  };
+
   public addImage = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const accountId = req.userId;

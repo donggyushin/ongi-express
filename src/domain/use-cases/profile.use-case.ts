@@ -10,6 +10,7 @@ export interface IProfileUseCase {
   updatePhysicalInfo(accountId: string, height?: number, weight?: number): Promise<Profile>;
   updateIntroduction(accountId: string, introduction: string): Promise<Profile>;
   getProfile(accountId: string): Promise<Profile | null>;
+  getProfileById(profileId: string): Promise<Profile | null>;
   addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
   addQna(accountId: string, question: string, answer: string): Promise<Profile>;
@@ -91,6 +92,10 @@ export class ProfileUseCase implements IProfileUseCase {
 
   async getProfile(accountId: string): Promise<Profile | null> {
     return await this.profileRepository.findByAccountId(accountId);
+  }
+
+  async getProfileById(profileId: string): Promise<Profile | null> {
+    return await this.profileRepository.findById(profileId);
   }
 
   async addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile> {
