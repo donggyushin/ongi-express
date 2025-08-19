@@ -54,7 +54,8 @@ export class Container {
     this.services.set('refreshTokenUseCase', new RefreshTokenUseCase(this.get<IJwtRepository>('jwtRepository')));
     this.services.set('profileUseCase', new ProfileUseCase(
       this.get<IProfileRepository>('profileRepository'),
-      this.get<IImageRepository>('imageRepository')
+      this.get<IImageRepository>('imageRepository'),
+      this.get<IProfileConnectionRepository>('profileConnectionRepository')
     ));
     this.services.set('emailVerificationUseCase', new EmailVerificationUseCase(
       this.get<IEmailVerificationRepository>('emailVerificationRepository'),

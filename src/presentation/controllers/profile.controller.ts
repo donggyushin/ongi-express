@@ -158,9 +158,10 @@ export class ProfileController {
     }
   };
 
-  public getProfileById = async (req: Request, res: Response): Promise<void> => {
+  public getProfileById = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
       const { id } = req.params;
+      const viewerUserId = req.userId; // Optional authenticated user
 
       if (!id) {
         const response: ApiResponse<null> = {
@@ -171,7 +172,7 @@ export class ProfileController {
         return;
       }
 
-      const profile = await this.profileUseCase.getProfileById(id);
+      const profile = await this.profileUseCase.getProfileById(id, viewerUserId);
 
       if (!profile) {
         const response: ApiResponse<null> = {
@@ -182,9 +183,13 @@ export class ProfileController {
         return;
       }
 
-      const response: ApiResponse<Profile> = {
+      const response: ApiResponse<any> = {
         success: true,
-        data: profile
+        data: {
+          ...profile.toJSON(),
+          ...(profile.isNew !== undefined && { isNew: profile.isNew }),
+          ...(profile.isLikedByMe !== undefined && { isLikedByMe: profile.isLikedByMe })
+        }
       };
 
       res.status(200).json(response);

@@ -1,4 +1,4 @@
-import { IProfileRepository, IImageRepository } from '../repositories';
+import { IProfileRepository, IImageRepository, IProfileConnectionRepository } from '../repositories';
 import { Profile, Image } from '../entities';
 import { validateKoreanNickname } from '@/shared/utils';
 
@@ -10,7 +10,7 @@ export interface IProfileUseCase {
   updatePhysicalInfo(accountId: string, height?: number, weight?: number): Promise<Profile>;
   updateIntroduction(accountId: string, introduction: string): Promise<Profile>;
   getProfile(accountId: string): Promise<Profile | null>;
-  getProfileById(profileId: string): Promise<Profile | null>;
+  getProfileById(profileId: string, viewerAccountId?: string): Promise<Profile & { isNew?: boolean; isLikedByMe?: boolean } | null>;
   addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
   removeImage(accountId: string, publicId: string): Promise<Profile>;
   addQna(accountId: string, question: string, answer: string): Promise<Profile>;
@@ -21,7 +21,8 @@ export interface IProfileUseCase {
 export class ProfileUseCase implements IProfileUseCase {
   constructor(
     private profileRepository: IProfileRepository,
-    private imageRepository: IImageRepository
+    private imageRepository: IImageRepository,
+    private profileConnectionRepository: IProfileConnectionRepository
   ) {}
 
   async updateProfileImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile> {
@@ -94,8 +95,40 @@ export class ProfileUseCase implements IProfileUseCase {
     return await this.profileRepository.findByAccountId(accountId);
   }
 
-  async getProfileById(profileId: string): Promise<Profile | null> {
-    return await this.profileRepository.findById(profileId);
+  async getProfileById(profileId: string, viewerAccountId?: string): Promise<Profile & { isNew?: boolean; isLikedByMe?: boolean } | null> {
+    const profile = await this.profileRepository.findById(profileId);
+    
+    if (!profile) {
+      return null;
+    }
+
+    // If no viewer account ID provided, return profile without additional fields
+    if (!viewerAccountId) {
+      return Object.assign(profile, {});
+    }
+
+    // Get viewer's profile
+    const viewerProfile = await this.profileRepository.findByAccountId(viewerAccountId);
+    if (!viewerProfile) {
+      return Object.assign(profile, {});
+    }
+
+    // Get viewer's profile connection
+    const viewerConnection = await this.profileConnectionRepository.findByProfileId(viewerProfile.id);
+    
+    let isNew = false;
+    let isLikedByMe = false;
+
+    if (viewerConnection) {
+      // Check if this profile is new in viewer's connections
+      const connectedProfile = viewerConnection.otherProfiles.find(cp => cp.profileId === profileId);
+      isNew = connectedProfile?.isNew || false;
+
+      // Check if viewer liked this profile
+      isLikedByMe = viewerConnection.profileIDsILike.includes(profileId);
+    }
+
+    return Object.assign(profile, { isNew, isLikedByMe });
   }
 
   async addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile> {
