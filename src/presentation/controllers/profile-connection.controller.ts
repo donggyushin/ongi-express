@@ -88,7 +88,8 @@ export class ProfileConnectionController {
         data: {
           profiles: result.profiles.map(profile => ({
             ...profile.toJSON(),
-            isNew: profile.isNew
+            isNew: profile.isNew,
+            isLikedByMe: (result.profileConnection?.profileIDsILike || []).includes(profile.id)
           })),
           newProfileIds: result.newProfileIds,
           profileIDsILike: result.profileConnection?.profileIDsILike || [],
