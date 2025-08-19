@@ -5,6 +5,8 @@ export class ProfileConnection {
     public readonly id: string,
     public readonly myProfileId: string,
     public readonly otherProfiles: ConnectedProfile[] = [],
+    public readonly profileIDsILike: string[] = [],
+    public readonly profileIDsLikeMe: string[] = [],
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
@@ -20,6 +22,8 @@ export class ProfileConnection {
       this.id,
       this.myProfileId,
       [...this.otherProfiles, newConnection],
+      this.profileIDsILike,
+      this.profileIDsLikeMe,
       this.createdAt,
       new Date()
     );
@@ -32,6 +36,8 @@ export class ProfileConnection {
       this.id,
       this.myProfileId,
       updatedProfiles,
+      this.profileIDsILike,
+      this.profileIDsLikeMe,
       this.createdAt,
       new Date()
     );
@@ -46,6 +52,8 @@ export class ProfileConnection {
       this.id,
       this.myProfileId,
       updatedProfiles,
+      this.profileIDsILike,
+      this.profileIDsLikeMe,
       this.createdAt,
       new Date()
     );
@@ -72,6 +80,8 @@ export class ProfileConnection {
       id: this.id,
       myProfileId: this.myProfileId,
       otherProfiles: this.otherProfiles.map(cp => cp.toJSON()),
+      profileIDsILike: this.profileIDsILike,
+      profileIDsLikeMe: this.profileIDsLikeMe,
       connectionCount: this.connectionCount,
       newConnectionCount: this.newConnectionCount,
       createdAt: this.createdAt.toISOString(),

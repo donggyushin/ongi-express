@@ -104,10 +104,12 @@ enum GenderType {
 }
 
 model ProfileConnection {
-  id           String   @id @default(cuid())
-  myProfileId  String   @map("my_profile_id")
-  createdAt    DateTime @default(now()) @map("created_at")
-  updatedAt    DateTime @updatedAt @map("updated_at")
+  id                 String   @id @default(cuid())
+  myProfileId        String   @map("my_profile_id")
+  profileIDsILike    String[] @default([]) @map("profile_ids_i_like")
+  profileIDsLikeMe   String[] @default([]) @map("profile_ids_like_me")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
 
   myProfile        Profile            @relation(fields: [myProfileId], references: [id], onDelete: Cascade)
   connectedProfiles ConnectedProfile[]
