@@ -6,6 +6,8 @@ export interface IProfileConnectionUseCase {
   getConnectedProfiles(accountId: string, limit?: number): Promise<{ profiles: Profile[]; newProfileIds: string[] }>;
   markConnectionAsViewed(accountId: string, otherProfileId: string): Promise<ProfileConnection>;
   generateConnectionsForRecentlyActiveProfiles(): Promise<{ processed: number; connectionsCreated: number }>;
+  likeProfile(likerAccountId: string, likedProfileId: string): Promise<void>;
+  unlikeProfile(likerAccountId: string, likedProfileId: string): Promise<void>;
 }
 
 export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
@@ -102,5 +104,44 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     }
 
     return { processed, connectionsCreated };
+  }
+
+  async likeProfile(likerAccountId: string, likedProfileId: string): Promise<void> {
+    // 1. likerAccountId로 프로필 조회
+    const likerProfile = await this.profileRepository.findByAccountId(likerAccountId);
+    if (!likerProfile) {
+      throw new Error('Liker profile not found');
+    }
+
+    // 2. likedProfileId로 프로필 조회 (존재 확인)
+    const likedProfile = await this.profileRepository.findById(likedProfileId);
+    if (!likedProfile) {
+      throw new Error('Liked profile not found');
+    }
+
+    // 3. 자기 자신을 좋아요할 수 없음
+    if (likerProfile.id === likedProfileId) {
+      throw new Error('Cannot like your own profile');
+    }
+
+    // 4. 좋아요 추가
+    await this.profileConnectionRepository.addLike(likerProfile.id, likedProfileId);
+  }
+
+  async unlikeProfile(likerAccountId: string, likedProfileId: string): Promise<void> {
+    // 1. likerAccountId로 프로필 조회
+    const likerProfile = await this.profileRepository.findByAccountId(likerAccountId);
+    if (!likerProfile) {
+      throw new Error('Liker profile not found');
+    }
+
+    // 2. likedProfileId로 프로필 조회 (존재 확인)
+    const likedProfile = await this.profileRepository.findById(likedProfileId);
+    if (!likedProfile) {
+      throw new Error('Liked profile not found');
+    }
+
+    // 3. 좋아요 취소
+    await this.profileConnectionRepository.removeLike(likerProfile.id, likedProfileId);
   }
 }

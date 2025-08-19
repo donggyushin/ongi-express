@@ -167,4 +167,88 @@ export class ProfileConnectionController {
       res.status(500).json(response);
     }
   }
+
+  async likeProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.userId;
+      const { likedProfileId } = req.params;
+
+      if (!userId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'User authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!likedProfileId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Liked profile ID is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      await this.profileConnectionUseCase.likeProfile(userId, likedProfileId);
+
+      const response: ApiResponse<{ message: string }> = {
+        success: true,
+        data: {
+          message: 'Profile liked successfully'
+        }
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+      res.status(400).json(response);
+    }
+  }
+
+  async unlikeProfile(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.userId;
+      const { likedProfileId } = req.params;
+
+      if (!userId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'User authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!likedProfileId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Liked profile ID is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      await this.profileConnectionUseCase.unlikeProfile(userId, likedProfileId);
+
+      const response: ApiResponse<{ message: string }> = {
+        success: true,
+        data: {
+          message: 'Profile unliked successfully'
+        }
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+      res.status(400).json(response);
+    }
+  }
 }

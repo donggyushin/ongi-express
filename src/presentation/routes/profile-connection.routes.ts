@@ -34,6 +34,18 @@ export class ProfileConnectionRoutes {
     this.router.post('/generate-for-active-profiles', (req, res) => 
       this.profileConnectionController.generateConnectionsForActiveProfiles(req, res)
     );
+
+    // POST /profile-connections/like/:likedProfileId
+    // 프로필 좋아요
+    this.router.post('/like/:likedProfileId', AuthMiddleware.verifyToken, (req, res) => 
+      this.profileConnectionController.likeProfile(req, res)
+    );
+
+    // DELETE /profile-connections/like/:likedProfileId
+    // 프로필 좋아요 취소
+    this.router.delete('/like/:likedProfileId', AuthMiddleware.verifyToken, (req, res) => 
+      this.profileConnectionController.unlikeProfile(req, res)
+    );
   }
 
   getRouter(): Router {

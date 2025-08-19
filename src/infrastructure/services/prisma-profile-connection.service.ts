@@ -231,6 +231,72 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
     });
   }
 
+  async addLike(likerProfileId: string, likedProfileId: string): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      // 1. 좋아요 하는 사람의 ProfileConnection 생성/업데이트
+      const likerConnection = await tx.profileConnection.upsert({
+        where: { myProfileId: likerProfileId },
+        create: {
+          myProfileId: likerProfileId,
+          profileIDsILike: [likedProfileId],
+          profileIDsLikeMe: []
+        },
+        update: {
+          profileIDsILike: {
+            push: likedProfileId
+          }
+        }
+      });
+
+      // 2. 좋아요 받는 사람의 ProfileConnection 생성/업데이트
+      await tx.profileConnection.upsert({
+        where: { myProfileId: likedProfileId },
+        create: {
+          myProfileId: likedProfileId,
+          profileIDsILike: [],
+          profileIDsLikeMe: [likerProfileId]
+        },
+        update: {
+          profileIDsLikeMe: {
+            push: likerProfileId
+          }
+        }
+      });
+    });
+  }
+
+  async removeLike(likerProfileId: string, likedProfileId: string): Promise<void> {
+    await this.prisma.$transaction(async (tx) => {
+      // 1. 좋아요 하는 사람의 ProfileConnection에서 제거
+      const likerConnection = await tx.profileConnection.findUnique({
+        where: { myProfileId: likerProfileId }
+      });
+
+      if (likerConnection && likerConnection.profileIDsILike.includes(likedProfileId)) {
+        await tx.profileConnection.update({
+          where: { myProfileId: likerProfileId },
+          data: {
+            profileIDsILike: likerConnection.profileIDsILike.filter(id => id !== likedProfileId)
+          }
+        });
+      }
+
+      // 2. 좋아요 받는 사람의 ProfileConnection에서 제거
+      const likedConnection = await tx.profileConnection.findUnique({
+        where: { myProfileId: likedProfileId }
+      });
+
+      if (likedConnection && likedConnection.profileIDsLikeMe.includes(likerProfileId)) {
+        await tx.profileConnection.update({
+          where: { myProfileId: likedProfileId },
+          data: {
+            profileIDsLikeMe: likedConnection.profileIDsLikeMe.filter(id => id !== likerProfileId)
+          }
+        });
+      }
+    });
+  }
+
   private mapToEntity(connection: any): ProfileConnection {
     const connectedProfiles = connection.connectedProfiles?.map((cp: any) => 
       new ConnectedProfile(
@@ -244,6 +310,8 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
       connection.id,
       connection.myProfileId,
       connectedProfiles,
+      connection.profileIDsILike || [],
+      connection.profileIDsLikeMe || [],
       connection.createdAt,
       connection.updatedAt
     );
