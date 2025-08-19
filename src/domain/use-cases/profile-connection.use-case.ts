@@ -3,7 +3,7 @@ import { IProfileConnectionRepository, IProfileRepository } from '@/domain/repos
 
 export interface IProfileConnectionUseCase {
   addRandomConnection(profileId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }>;
-  getConnectedProfiles(accountId: string, limit?: number): Promise<{ profiles: Profile[]; newProfileIds: string[] }>;
+  getConnectedProfiles(accountId: string, limit?: number): Promise<{ profiles: Profile[]; newProfileIds: string[]; profileConnection: ProfileConnection | null }>;
   markConnectionAsViewed(accountId: string, otherProfileId: string): Promise<ProfileConnection>;
   generateConnectionsForRecentlyActiveProfiles(): Promise<{ processed: number; connectionsCreated: number }>;
   likeProfile(likerAccountId: string, likedProfileId: string): Promise<void>;
@@ -60,14 +60,20 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     return { connection: updatedConnection, addedProfile: randomProfile };
   }
 
-  async getConnectedProfiles(accountId: string, limit?: number): Promise<{ profiles: Profile[]; newProfileIds: string[] }> {
+  async getConnectedProfiles(accountId: string, limit?: number): Promise<{ profiles: Profile[]; newProfileIds: string[]; profileConnection: ProfileConnection | null }> {
     // accountId로 프로필 조회
     const currentProfile = await this.profileRepository.findByAccountId(accountId);
     if (!currentProfile) {
       throw new Error('Profile not found');
     }
 
-    return await this.profileConnectionRepository.getConnectedProfiles(currentProfile.id, limit);
+    const result = await this.profileConnectionRepository.getConnectedProfiles(currentProfile.id, limit);
+    const profileConnection = await this.profileConnectionRepository.findByProfileId(currentProfile.id);
+
+    return {
+      ...result,
+      profileConnection
+    };
   }
 
   async markConnectionAsViewed(accountId: string, otherProfileId: string): Promise<ProfileConnection> {

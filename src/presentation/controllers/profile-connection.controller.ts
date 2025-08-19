@@ -79,6 +79,8 @@ export class ProfileConnectionController {
       const response: ApiResponse<{
         profiles: any[];
         newProfileIds: string[];
+        profileIDsILike: string[];
+        profileIDsLikeMe: string[];
         count: number;
         limit: number;
       }> = {
@@ -86,6 +88,8 @@ export class ProfileConnectionController {
         data: {
           profiles: result.profiles.map(profile => profile.toJSON()),
           newProfileIds: result.newProfileIds,
+          profileIDsILike: result.profileConnection?.profileIDsILike || [],
+          profileIDsLikeMe: result.profileConnection?.profileIDsLikeMe || [],
           count: result.profiles.length,
           limit: Math.min(limitNumber, 100)
         }
