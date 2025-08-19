@@ -191,7 +191,7 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
     return this.mapToEntity(updatedConnection!);
   }
 
-  async getConnectedProfiles(myProfileId: string, limit: number = 100): Promise<{ profiles: Profile[]; newProfileIds: string[] }> {
+  async getConnectedProfiles(myProfileId: string, limit: number = 100): Promise<{ profiles: (Profile & { isNew: boolean })[]; newProfileIds: string[] }> {
     const connection = await this.prisma.profileConnection.findUnique({
       where: { myProfileId },
       include: {
@@ -217,7 +217,10 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
       return { profiles: [], newProfileIds: [] };
     }
 
-    const profiles = connection.connectedProfiles.map(cp => this.mapProfileToEntity(cp.profile));
+    const profiles = connection.connectedProfiles.map(cp => {
+      const profile = this.mapProfileToEntity(cp.profile);
+      return Object.assign(profile, { isNew: cp.isNew });
+    });
     const newProfileIds = connection.connectedProfiles
       .filter(cp => cp.isNew)
       .map(cp => cp.profileId);

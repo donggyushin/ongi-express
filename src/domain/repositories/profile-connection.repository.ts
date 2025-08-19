@@ -7,7 +7,7 @@ export interface IProfileConnectionRepository {
   removeConnection(myProfileId: string, otherProfileId: string): Promise<ProfileConnection>;
   markConnectionAsViewed(myProfileId: string, otherProfileId: string): Promise<ProfileConnection>;
   updateConnections(myProfileId: string, othersProfileIds: string[]): Promise<ProfileConnection>;
-  getConnectedProfiles(myProfileId: string, limit?: number): Promise<{ profiles: Profile[]; newProfileIds: string[] }>;
+  getConnectedProfiles(myProfileId: string, limit?: number): Promise<{ profiles: (Profile & { isNew: boolean })[]; newProfileIds: string[] }>;
   addLike(likerProfileId: string, likedProfileId: string): Promise<void>;
   removeLike(likerProfileId: string, likedProfileId: string): Promise<void>;
   delete(myProfileId: string): Promise<void>;
