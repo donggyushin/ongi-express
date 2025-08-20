@@ -8,3 +8,6 @@ export * from './image.entity';
 export * from './email-verification.entity';
 export * from './connected-profile.entity';
 export * from './profile-connection.entity';
+export * from './message.entity';
+export * from './message-read-info.entity';
+export * from './chat.entity';

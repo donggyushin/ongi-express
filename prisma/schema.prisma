@@ -55,6 +55,8 @@ model Profile {
   qnas         QnA[]
   connections  ProfileConnection?
   connectedInProfiles ConnectedProfile[]
+  messages     Message[]
+  messageReadInfos MessageReadInfo[]
 
   @@map("profiles")
 }
@@ -149,4 +151,46 @@ model EmailVerification {
   @@map("email_verifications")
   @@index([accountId])
   @@index([email])
+}
+
+model Message {
+  id              String   @id @default(cuid())
+  writerProfileId String   @map("writer_profile_id")
+  text            String
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  writerProfile Profile @relation(fields: [writerProfileId], references: [id], onDelete: Cascade)
+  chat          Chat?   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId        String? @map("chat_id")
+
+  @@map("messages")
+  @@index([writerProfileId])
+  @@index([chatId])
+}
+
+model MessageReadInfo {
+  id                         String   @id @default(cuid())
+  profileId                  String   @map("profile_id")
+  dateInfoUserViewedRecently DateTime @map("date_info_user_viewed_recently")
+
+  profile Profile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  chat    Chat?   @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  chatId  String? @map("chat_id")
+
+  @@map("message_read_infos")
+  @@index([profileId])
+  @@index([chatId])
+}
+
+model Chat {
+  id              String   @id @default(cuid())
+  participantsIds String[] @default([]) @map("participants_ids")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  messages         Message[]         @relation
+  messageReadInfos MessageReadInfo[] @relation
+
+  @@map("chats")
 }
