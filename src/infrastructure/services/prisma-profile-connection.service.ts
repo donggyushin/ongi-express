@@ -217,11 +217,14 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
       return { profiles: [], newProfileIds: [] };
     }
 
-    const profiles = connection.connectedProfiles.map(cp => {
+    // 프로필이 존재하는 연결들만 필터링
+    const validConnectedProfiles = connection.connectedProfiles.filter(cp => cp.profile !== null);
+
+    const profiles = validConnectedProfiles.map(cp => {
       const profile = this.mapProfileToEntity(cp.profile);
       return Object.assign(profile, { isNew: cp.isNew });
     });
-    const newProfileIds = connection.connectedProfiles
+    const newProfileIds = validConnectedProfiles
       .filter(cp => cp.isNew)
       .map(cp => cp.profileId);
 
