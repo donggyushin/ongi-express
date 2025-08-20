@@ -8,6 +8,7 @@ export interface IProfileConnectionUseCase {
   generateConnectionsForRecentlyActiveProfiles(): Promise<{ processed: number; connectionsCreated: number }>;
   likeProfile(likerAccountId: string, likedProfileId: string): Promise<void>;
   unlikeProfile(likerAccountId: string, likedProfileId: string): Promise<void>;
+  getProfilesThatLikedMe(accountId: string, limit?: number): Promise<Profile[]>;
 }
 
 export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
@@ -149,5 +150,36 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
 
     // 3. 좋아요 취소
     await this.profileConnectionRepository.removeLike(likerProfile.id, likedProfileId);
+  }
+
+  async getProfilesThatLikedMe(accountId: string, limit: number = 100): Promise<Profile[]> {
+    // 1. accountId로 프로필 조회
+    const currentProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!currentProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // 2. ProfileConnection 조회
+    const connection = await this.profileConnectionRepository.findByProfileId(currentProfile.id);
+    if (!connection || connection.profileIDsLikeMe.length === 0) {
+      return [];
+    }
+
+    // 3. profileIDsLikeMe를 역순으로 정렬하고 최대 limit개까지 제한
+    const likerProfileIds = connection.profileIDsLikeMe
+      .slice()
+      .reverse()
+      .slice(0, Math.min(limit, 100));
+
+    // 4. 프로필 ID들로 프로필 조회 (순서 유지)
+    const profiles: Profile[] = [];
+    for (const profileId of likerProfileIds) {
+      const profile = await this.profileRepository.findById(profileId);
+      if (profile) {
+        profiles.push(profile);
+      }
+    }
+
+    return profiles;
   }
 }

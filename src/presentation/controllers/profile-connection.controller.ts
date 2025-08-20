@@ -259,4 +259,58 @@ export class ProfileConnectionController {
       res.status(400).json(response);
     }
   }
+
+  async getProfilesThatLikedMe(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      const userId = req.userId;
+      const { limit } = req.query;
+
+      if (!userId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'User authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      // limit이 제공된 경우 숫자로 변환, 기본값은 100
+      const limitNumber = limit ? parseInt(limit as string, 10) : 100;
+
+      if (isNaN(limitNumber) || limitNumber <= 0) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Limit must be a positive number'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // 최대 100개로 제한
+      const maxLimit = Math.min(limitNumber, 100);
+
+      const profiles = await this.profileConnectionUseCase.getProfilesThatLikedMe(userId, maxLimit);
+
+      const response: ApiResponse<{
+        profiles: any[];
+        count: number;
+        limit: number;
+      }> = {
+        success: true,
+        data: {
+          profiles: profiles.map(profile => profile.toJSON()),
+          count: profiles.length,
+          limit: maxLimit
+        }
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Unknown error occurred'
+      };
+      res.status(500).json(response);
+    }
+  }
 }

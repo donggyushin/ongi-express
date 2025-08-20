@@ -46,6 +46,12 @@ export class ProfileConnectionRoutes {
     this.router.delete('/like/:likedProfileId', AuthMiddleware.verifyToken, (req, res) => 
       this.profileConnectionController.unlikeProfile(req, res)
     );
+
+    // GET /profile-connections/liked-me
+    // 나에게 좋아요를 누른 프로필들 조회, limit 쿼리 파라미터 지원 (최대 100개)
+    this.router.get('/liked-me', AuthMiddleware.verifyToken, (req, res) => 
+      this.profileConnectionController.getProfilesThatLikedMe(req, res)
+    );
   }
 
   getRouter(): Router {
