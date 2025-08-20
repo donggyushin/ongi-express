@@ -2,6 +2,7 @@ import { Profile, Image, QnA } from '../entities';
 
 export interface IProfileRepository {
   findById(id: string): Promise<Profile | null>;
+  findByIds(ids: string[]): Promise<Profile[]>;
   findByAccountId(accountId: string): Promise<Profile | null>;
   updateProfileImage(accountId: string, image: Image): Promise<Profile>;
   updateNickname(accountId: string, nickname: string): Promise<Profile>;

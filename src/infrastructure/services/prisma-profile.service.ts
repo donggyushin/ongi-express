@@ -18,6 +18,27 @@ export class PrismaProfileService implements IProfileRepository {
     return profile ? this.mapToProfileEntity(profile) : null;
   }
 
+  async findByIds(ids: string[]): Promise<Profile[]> {
+    if (ids.length === 0) return [];
+
+    const profiles = await this.prisma.profile.findMany({
+      where: { 
+        id: { 
+          in: ids 
+        } 
+      },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true
+      }
+    });
+
+    // 원본 ids 배열의 순서를 유지하여 반환
+    const profileMap = new Map(profiles.map(p => [p.id, this.mapToProfileEntity(p)]));
+    return ids.map(id => profileMap.get(id)).filter(Boolean) as Profile[];
+  }
+
   async findByAccountId(accountId: string): Promise<Profile | null> {
     const profile = await this.prisma.profile.findUnique({
       where: { accountId },

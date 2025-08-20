@@ -171,14 +171,8 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
       .reverse()
       .slice(0, Math.min(limit, 100));
 
-    // 4. 프로필 ID들로 프로필 조회 (순서 유지)
-    const profiles: Profile[] = [];
-    for (const profileId of likerProfileIds) {
-      const profile = await this.profileRepository.findById(profileId);
-      if (profile) {
-        profiles.push(profile);
-      }
-    }
+    // 4. 배치로 프로필들 조회 (N개 쿼리 → 1개 쿼리로 최적화)
+    const profiles = await this.profileRepository.findByIds(likerProfileIds);
 
     return profiles;
   }
