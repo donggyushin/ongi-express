@@ -8,5 +8,6 @@ export interface IChatRepository {
       cursor?: string;
     }
   ): Promise<Chat | null>;
+  findByProfileId(profileId: string): Promise<Chat[]>;
   create(participantsIds: string[]): Promise<Chat>;
 }

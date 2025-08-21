@@ -10,6 +10,7 @@ export class ChatRoutes {
   }
 
   private initializeRoutes(): void {
+    this.router.get('/', AuthMiddleware.verifyToken, (req, res) => this.chatController.getUserChats(req, res));
     this.router.post('/:profileId', AuthMiddleware.verifyToken, (req, res) => this.chatController.createOrFindChat(req, res));
   }
 

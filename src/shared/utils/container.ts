@@ -1,4 +1,4 @@
-import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase } from '@/domain/use-cases';
+import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
 import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository } from '@/domain/repositories';
 import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService } from '@/infrastructure/services';
@@ -72,6 +72,10 @@ export class Container {
       this.get<IChatRepository>('chatRepository'),
       this.get<IProfileRepository>('profileRepository')
     ));
+    this.services.set('getUserChatsUseCase', new GetUserChatsUseCase(
+      this.get<IChatRepository>('chatRepository'),
+      this.get<IProfileRepository>('profileRepository')
+    ));
 
     // Controllers
     this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));
@@ -89,6 +93,7 @@ export class Container {
     this.services.set('profileConnectionController', new ProfileConnectionController(this.get<IProfileConnectionUseCase>('profileConnectionUseCase')));
     this.services.set('chatController', new ChatController(
       this.get<ICreateOrFindChatUseCase>('createOrFindChatUseCase'),
+      this.get<IGetUserChatsUseCase>('getUserChatsUseCase'),
       this.get<IGetAccountUseCase>('getAccountUseCase')
     ));
 

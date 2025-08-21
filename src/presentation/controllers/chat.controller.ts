@@ -1,11 +1,12 @@
 import { Request, Response } from 'express';
-import { ICreateOrFindChatUseCase, IGetAccountUseCase } from '@/domain/use-cases';
+import { ICreateOrFindChatUseCase, IGetUserChatsUseCase, IGetAccountUseCase } from '@/domain/use-cases';
 import { ApiResponse } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
 
 export class ChatController {
   constructor(
     private readonly createOrFindChatUseCase: ICreateOrFindChatUseCase,
+    private readonly getUserChatsUseCase: IGetUserChatsUseCase,
     private readonly getAccountUseCase: IGetAccountUseCase
   ) {}
 
@@ -78,6 +79,53 @@ export class ChatController {
       const response: ApiResponse = {
         success: false,
         error: 'Failed to create or find chat'
+      };
+      
+      res.status(500).json(response);
+    }
+  }
+
+  async getUserChats(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.userId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'User ID not found in token'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      // Get current user's profile first  
+      const currentAccount = await this.getAccountUseCase.execute(req.userId);
+      if (!currentAccount || !currentAccount.profile) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Current user profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      const result = await this.getUserChatsUseCase.execute(currentAccount.profile.id);
+      
+      const response: ApiResponse = {
+        success: true,
+        data: {
+          chats: result.chats.map(chat => ({
+            ...chat.toJSON(),
+            participants: result.participants[chat.id]?.map(p => p.toJSON()) || []
+          }))
+        },
+        message: 'User chats retrieved successfully'
+      };
+      
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Get user chats error:', error);
+      const response: ApiResponse = {
+        success: false,
+        error: 'Failed to get user chats'
       };
       
       res.status(500).json(response);

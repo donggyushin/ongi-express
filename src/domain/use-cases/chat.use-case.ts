@@ -15,6 +15,13 @@ export interface ICreateOrFindChatUseCase {
   }>;
 }
 
+export interface IGetUserChatsUseCase {
+  execute(profileId: string): Promise<{
+    chats: Chat[];
+    participants: { [chatId: string]: Profile[] };
+  }>;
+}
+
 export class CreateOrFindChatUseCase implements ICreateOrFindChatUseCase {
   constructor(
     private chatRepository: IChatRepository,
@@ -59,6 +66,46 @@ export class CreateOrFindChatUseCase implements ICreateOrFindChatUseCase {
 
     return {
       chat,
+      participants
+    };
+  }
+}
+
+export class GetUserChatsUseCase implements IGetUserChatsUseCase {
+  constructor(
+    private chatRepository: IChatRepository,
+    private profileRepository: IProfileRepository
+  ) {}
+
+  async execute(profileId: string): Promise<{
+    chats: Chat[];
+    participants: { [chatId: string]: Profile[] };
+  }> {
+    // Get all chats for the user
+    const chats = await this.chatRepository.findByProfileId(profileId);
+    
+    // Get all participants for each chat
+    const participants: { [chatId: string]: Profile[] } = {};
+    
+    for (const chat of chats) {
+      const chatParticipants: Profile[] = [];
+      
+      for (const participantId of chat.participantsIds) {
+        try {
+          const profile = await this.profileRepository.findById(participantId);
+          if (profile) {
+            chatParticipants.push(profile);
+          }
+        } catch (error) {
+          console.warn(`Profile not found: ${participantId}`);
+        }
+      }
+      
+      participants[chat.id] = chatParticipants;
+    }
+
+    return {
+      chats,
       participants
     };
   }

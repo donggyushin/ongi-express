@@ -74,6 +74,62 @@ export class PrismaChatService implements IChatRepository {
     }
   }
 
+  async findByProfileId(profileId: string): Promise<Chat[]> {
+    try {
+      const chats = await this.prisma.chat.findMany({
+        where: {
+          participantsIds: {
+            has: profileId
+          }
+        },
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'desc'
+            },
+            take: 1 // Get only the latest message for chat list
+          },
+          messageReadInfos: true
+        },
+        orderBy: {
+          updatedAt: 'desc' // Sort chats by most recently updated
+        }
+      });
+
+      return chats.map(chat => {
+        const messages = chat.messages.map(message => 
+          new Message(
+            message.id,
+            message.writerProfileId,
+            message.text,
+            message.createdAt,
+            message.updatedAt
+          )
+        );
+
+        const messageReadInfos = chat.messageReadInfos.map(info =>
+          new MessageReadInfo(
+            info.id,
+            info.profileId,
+            info.dateInfoUserViewedRecently
+          )
+        );
+
+        return new Chat(
+          chat.id,
+          chat.participantsIds,
+          messages,
+          messageReadInfos,
+          chat.createdAt,
+          chat.updatedAt
+        );
+      });
+    } catch (error) {
+      console.error('Error finding chats by profile ID:', error);
+      throw new Error('Failed to find chats');
+    }
+  }
+
   async create(participantsIds: string[]): Promise<Chat> {
     try {
       const sortedIds = [...participantsIds].sort();
