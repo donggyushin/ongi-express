@@ -1,14 +1,12 @@
 import { Request, Response } from 'express';
-import { ICreateOrFindChatUseCase } from '@/domain/use-cases';
+import { ICreateOrFindChatUseCase, IGetAccountUseCase } from '@/domain/use-cases';
 import { ApiResponse } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
-import { Container } from '@/shared/utils';
 
 export class ChatController {
-  private container = Container.getInstance();
-
   constructor(
-    private readonly createOrFindChatUseCase: ICreateOrFindChatUseCase
+    private readonly createOrFindChatUseCase: ICreateOrFindChatUseCase,
+    private readonly getAccountUseCase: IGetAccountUseCase
   ) {}
 
   async createOrFindChat(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -34,8 +32,7 @@ export class ChatController {
       }
 
       // Get current user's profile first  
-      const accountRepository = this.container.get('accountRepository') as any;
-      const currentAccount = await accountRepository.findById(req.userId);
+      const currentAccount = await this.getAccountUseCase.execute(req.userId);
       if (!currentAccount || !currentAccount.profile) {
         const response: ApiResponse = {
           success: false,

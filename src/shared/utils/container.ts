@@ -87,7 +87,10 @@ export class Container {
     this.services.set('emailVerificationController', new EmailVerificationController(this.get<IEmailVerificationUseCase>('emailVerificationUseCase')));
     this.services.set('qnaExamplesController', new QnAExamplesController(this.get<IQnAExamplesUseCase>('qnaExamplesUseCase')));
     this.services.set('profileConnectionController', new ProfileConnectionController(this.get<IProfileConnectionUseCase>('profileConnectionUseCase')));
-    this.services.set('chatController', new ChatController(this.get<ICreateOrFindChatUseCase>('createOrFindChatUseCase')));
+    this.services.set('chatController', new ChatController(
+      this.get<ICreateOrFindChatUseCase>('createOrFindChatUseCase'),
+      this.get<IGetAccountUseCase>('getAccountUseCase')
+    ));
 
     // Middlewares
     this.services.set('errorMiddleware', new ErrorMiddleware(this.get<ILoggerService>('logger')));
