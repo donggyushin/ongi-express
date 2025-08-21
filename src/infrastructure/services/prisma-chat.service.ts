@@ -1,20 +1,38 @@
-import { Chat } from '@/domain/entities/chat.entity';
+import { Chat, Message, MessageReadInfo } from '@/domain/entities';
 import { IChatRepository } from '@/domain/repositories';
 import { PrismaClient } from '../../generated/prisma';
 
 export class PrismaChatService implements IChatRepository {
   constructor(private prisma: PrismaClient) {}
 
-  async findByParticipantsIds(participantsIds: string[]): Promise<Chat | null> {
+  async findByParticipantsIds(
+    participantsIds: string[],
+    options?: {
+      limit?: number;
+      cursor?: string;
+    }
+  ): Promise<Chat | null> {
     try {
       const sortedIds = [...participantsIds].sort();
+      const limit = options?.limit ?? 100;
       
       const chat = await this.prisma.chat.findFirst({
         where: {
           participantsIds: { hasEvery: sortedIds }
         },
         include: {
-          messages: true,
+          messages: {
+            orderBy: {
+              createdAt: 'desc' // Sort messages by creation date, newest first
+            },
+            take: limit,
+            ...(options?.cursor && {
+              cursor: {
+                id: options.cursor
+              },
+              skip: 1 // Skip the cursor message itself
+            })
+          },
           messageReadInfos: true
         }
       });
@@ -23,11 +41,30 @@ export class PrismaChatService implements IChatRepository {
         return null;
       }
 
+      // Convert Prisma entities to domain entities
+      const messages = chat.messages.map(message => 
+        new Message(
+          message.id,
+          message.writerProfileId,
+          message.text,
+          message.createdAt,
+          message.updatedAt
+        )
+      );
+
+      const messageReadInfos = chat.messageReadInfos.map(info =>
+        new MessageReadInfo(
+          info.id,
+          info.profileId,
+          info.dateInfoUserViewedRecently
+        )
+      );
+
       return new Chat(
         chat.id,
         chat.participantsIds,
-        [],
-        [],
+        messages,
+        messageReadInfos,
         chat.createdAt,
         chat.updatedAt
       );
