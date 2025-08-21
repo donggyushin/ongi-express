@@ -1,5 +1,5 @@
-import { Chat, Profile } from '@/domain/entities';
-import { IChatRepository, IProfileRepository } from '@/domain/repositories';
+import { Chat, Profile, Message } from '@/domain/entities';
+import { IChatRepository, IProfileRepository, IMessageRepository } from '@/domain/repositories';
 
 export interface ICreateOrFindChatUseCase {
   execute(
@@ -20,6 +20,10 @@ export interface IGetUserChatsUseCase {
     chats: Chat[];
     participants: { [chatId: string]: Profile[] };
   }>;
+}
+
+export interface IAddMessageUseCase {
+  execute(chatId: string, writerProfileId: string, text: string): Promise<Message>;
 }
 
 export class CreateOrFindChatUseCase implements ICreateOrFindChatUseCase {
@@ -108,5 +112,42 @@ export class GetUserChatsUseCase implements IGetUserChatsUseCase {
       chats,
       participants
     };
+  }
+}
+
+export class AddMessageUseCase implements IAddMessageUseCase {
+  constructor(
+    private messageRepository: IMessageRepository,
+    private chatRepository: IChatRepository
+  ) {}
+
+  async execute(chatId: string, writerProfileId: string, text: string): Promise<Message> {
+    // Validate text input
+    if (!text || text.trim().length === 0) {
+      throw new Error('Message text cannot be empty');
+    }
+
+    if (text.length > 1000) {
+      throw new Error('Message text is too long (max 1000 characters)');
+    }
+
+    // Verify that the chat exists
+    const chat = await this.chatRepository.findByParticipantsIds([writerProfileId]);
+    const userChat = chat ? [chat] : await this.chatRepository.findByProfileId(writerProfileId);
+    
+    const targetChat = userChat.find(c => c.id === chatId);
+    if (!targetChat) {
+      throw new Error('Chat not found or user not authorized to send messages to this chat');
+    }
+
+    // Check if user is a participant of the chat
+    if (!targetChat.participantsIds.includes(writerProfileId)) {
+      throw new Error('User is not a participant of this chat');
+    }
+
+    // Create the message
+    const message = await this.messageRepository.create(chatId, writerProfileId, text.trim());
+
+    return message;
   }
 }

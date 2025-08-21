@@ -1,7 +1,7 @@
-import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase } from '@/domain/use-cases';
+import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
-import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository } from '@/domain/repositories';
-import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService } from '@/infrastructure/services';
+import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository, IMessageRepository } from '@/domain/repositories';
+import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService } from '@/infrastructure/services';
 import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma-email-verification.service';
 import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
 import { GmailService } from '@/infrastructure/services/gmail.service';
@@ -37,6 +37,7 @@ export class Container {
     this.services.set('profileRepository', new PrismaProfileService(this.get('prisma')));
     this.services.set('profileConnectionRepository', new PrismaProfileConnectionService(this.get('prisma')));
     this.services.set('chatRepository', new PrismaChatService(this.get('prisma')));
+    this.services.set('messageRepository', new PrismaMessageService(this.get('prisma')));
     this.services.set('emailVerificationRepository', new PrismaEmailVerificationService(this.get('prisma')));
     this.services.set('imageRepository', new CloudinaryService(this.get<ILoggerService>('logger')));
     this.services.set('emailService', new GmailService());
@@ -76,6 +77,10 @@ export class Container {
       this.get<IChatRepository>('chatRepository'),
       this.get<IProfileRepository>('profileRepository')
     ));
+    this.services.set('addMessageUseCase', new AddMessageUseCase(
+      this.get<IMessageRepository>('messageRepository'),
+      this.get<IChatRepository>('chatRepository')
+    ));
 
     // Controllers
     this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));
@@ -94,6 +99,7 @@ export class Container {
     this.services.set('chatController', new ChatController(
       this.get<ICreateOrFindChatUseCase>('createOrFindChatUseCase'),
       this.get<IGetUserChatsUseCase>('getUserChatsUseCase'),
+      this.get<IAddMessageUseCase>('addMessageUseCase'),
       this.get<IGetAccountUseCase>('getAccountUseCase')
     ));
 

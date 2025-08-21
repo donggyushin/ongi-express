@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ICreateOrFindChatUseCase, IGetUserChatsUseCase, IGetAccountUseCase } from '@/domain/use-cases';
+import { ICreateOrFindChatUseCase, IGetUserChatsUseCase, IAddMessageUseCase, IGetAccountUseCase } from '@/domain/use-cases';
 import { ApiResponse } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
 
@@ -7,6 +7,7 @@ export class ChatController {
   constructor(
     private readonly createOrFindChatUseCase: ICreateOrFindChatUseCase,
     private readonly getUserChatsUseCase: IGetUserChatsUseCase,
+    private readonly addMessageUseCase: IAddMessageUseCase,
     private readonly getAccountUseCase: IGetAccountUseCase
   ) {}
 
@@ -129,6 +130,92 @@ export class ChatController {
       };
       
       res.status(500).json(response);
+    }
+  }
+
+  async addMessage(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.userId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'User ID not found in token'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      const { chatId } = req.params;
+      const { text } = req.body;
+
+      if (!chatId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Missing required parameter: chatId'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      if (!text) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Missing required field: text'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // Get current user's profile first  
+      const currentAccount = await this.getAccountUseCase.execute(req.userId);
+      if (!currentAccount || !currentAccount.profile) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Current user profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      const message = await this.addMessageUseCase.execute(
+        chatId,
+        currentAccount.profile.id,
+        text
+      );
+      
+      const response: ApiResponse = {
+        success: true,
+        data: {
+          message: message.toJSON()
+        },
+        message: 'Message added successfully'
+      };
+      
+      res.status(201).json(response);
+    } catch (error) {
+      console.error('Add message error:', error);
+      
+      let errorMessage = 'Failed to add message';
+      let statusCode = 500;
+
+      if (error instanceof Error) {
+        if (error.message.includes('Chat not found') || 
+            error.message.includes('not authorized') ||
+            error.message.includes('not a participant')) {
+          errorMessage = error.message;
+          statusCode = 403;
+        } else if (error.message.includes('empty') || 
+                   error.message.includes('too long')) {
+          errorMessage = error.message;
+          statusCode = 400;
+        }
+      }
+
+      const response: ApiResponse = {
+        success: false,
+        error: errorMessage
+      };
+      
+      res.status(statusCode).json(response);
     }
   }
 }
