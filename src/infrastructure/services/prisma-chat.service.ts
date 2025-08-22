@@ -12,6 +12,7 @@ export class PrismaChatService implements IChatRepository {
       const sortedIds = [...participantsIds].sort();
       const limit = 10;
       
+      // Single optimized query with joins
       const chat = await this.prisma.chat.findFirst({
         where: {
           participantsIds: { hasEvery: sortedIds }
@@ -19,7 +20,7 @@ export class PrismaChatService implements IChatRepository {
         include: {
           messages: {
             orderBy: {
-              createdAt: 'desc' // Sort messages by creation date, newest first
+              createdAt: 'desc'
             },
             take: limit
           },
@@ -31,15 +32,52 @@ export class PrismaChatService implements IChatRepository {
         return null;
       }
 
-      // Get participant profiles
+      // Optimized participant profiles query - only essential data
       const participantProfiles = await this.prisma.profile.findMany({
         where: {
           id: { in: chat.participantsIds }
         },
-        include: {
-          qnas: true,
-          profileImage: true,
-          images: true
+        select: {
+          id: true,
+          accountId: true,
+          nickname: true,
+          email: true,
+          introduction: true,
+          mbti: true,
+          gender: true,
+          height: true,
+          weight: true,
+          lastTokenAuthAt: true,
+          createdAt: true,
+          updatedAt: true,
+          profileImage: {
+            select: {
+              url: true,
+              publicId: true
+            }
+          },
+          // Limit images to first 3 for performance
+          images: {
+            select: {
+              url: true,
+              publicId: true
+            },
+            take: 3
+          },
+          // Limit QnAs to first 2 for performance  
+          qnas: {
+            select: {
+              id: true,
+              question: true,
+              answer: true,
+              createdAt: true,
+              updatedAt: true
+            },
+            take: 2,
+            orderBy: {
+              createdAt: 'desc'
+            }
+          }
         }
       });
 
@@ -132,16 +170,39 @@ export class PrismaChatService implements IChatRepository {
         }
       });
 
-      // Get all participant profiles for all chats
+      // Optimized participant profiles query for chat list
       const allParticipantIds = [...new Set(chats.flatMap(chat => chat.participantsIds))];
       const allParticipantProfiles = await this.prisma.profile.findMany({
         where: {
           id: { in: allParticipantIds }
         },
-        include: {
-          qnas: true,
-          profileImage: true,
-          images: true
+        select: {
+          id: true,
+          accountId: true,
+          nickname: true,
+          email: true,
+          introduction: true,
+          mbti: true,
+          gender: true,
+          height: true,
+          weight: true,
+          lastTokenAuthAt: true,
+          createdAt: true,
+          updatedAt: true,
+          profileImage: {
+            select: {
+              url: true,
+              publicId: true
+            }
+          },
+          // Minimal data for chat list - no images and qnas for performance
+          images: {
+            select: {
+              url: true,
+              publicId: true
+            },
+            take: 1 // Only first image for chat list
+          }
         }
       });
 
@@ -167,13 +228,7 @@ export class PrismaChatService implements IChatRepository {
           profile.height,
           profile.weight,
           profile.lastTokenAuthAt,
-          profile.qnas.map(qna => new QnA(
-            qna.id,
-            qna.question,
-            qna.answer,
-            qna.createdAt,
-            qna.updatedAt
-          )),
+          [], // No QnAs for chat list performance
           profile.createdAt,
           profile.updatedAt
         ));
@@ -274,14 +329,15 @@ export class PrismaChatService implements IChatRepository {
         });
       }
 
-      // Return updated chat with all data
+      // Return updated chat with optimized data
       const updatedChat = await this.prisma.chat.findUnique({
         where: { id: chatId },
         include: {
           messages: {
             orderBy: {
               createdAt: 'desc'
-            }
+            },
+            take: 10 // Limit messages for performance
           },
           messageReadInfos: true
         }
@@ -291,15 +347,50 @@ export class PrismaChatService implements IChatRepository {
         throw new Error('Chat not found after update');
       }
 
-      // Get participant profiles
+      // Optimized participant profiles query
       const participantProfiles = await this.prisma.profile.findMany({
         where: {
           id: { in: updatedChat.participantsIds }
         },
-        include: {
-          qnas: true,
-          profileImage: true,
-          images: true
+        select: {
+          id: true,
+          accountId: true,
+          nickname: true,
+          email: true,
+          introduction: true,
+          mbti: true,
+          gender: true,
+          height: true,
+          weight: true,
+          lastTokenAuthAt: true,
+          createdAt: true,
+          updatedAt: true,
+          profileImage: {
+            select: {
+              url: true,
+              publicId: true
+            }
+          },
+          images: {
+            select: {
+              url: true,
+              publicId: true
+            },
+            take: 3
+          },
+          qnas: {
+            select: {
+              id: true,
+              question: true,
+              answer: true,
+              createdAt: true,
+              updatedAt: true
+            },
+            take: 2,
+            orderBy: {
+              createdAt: 'desc'
+            }
+          }
         }
       });
 

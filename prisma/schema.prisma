@@ -167,6 +167,7 @@ model Message {
   @@map("messages")
   @@index([writerProfileId])
   @@index([chatId])
+  @@index([chatId, createdAt]) // Composite index for chat messages ordering
 }
 
 model MessageReadInfo {
@@ -193,4 +194,6 @@ model Chat {
   messageReadInfos MessageReadInfo[] @relation
 
   @@map("chats")
+  @@index([participantsIds]) // For finding chats by participants
+  @@index([updatedAt])       // For sorting by most recent
 }
