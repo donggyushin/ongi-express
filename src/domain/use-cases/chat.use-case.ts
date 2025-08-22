@@ -14,7 +14,6 @@ export interface ICreateOrFindChatUseCase {
 export interface IGetUserChatsUseCase {
   execute(profileId: string): Promise<{
     chats: Chat[];
-    participants: { [chatId: string]: Profile[] };
   }>;
 }
 
@@ -79,42 +78,12 @@ export class GetUserChatsUseCase implements IGetUserChatsUseCase {
 
   async execute(profileId: string): Promise<{
     chats: Chat[];
-    participants: { [chatId: string]: Profile[] };
   }> {
-    // Get all chats for the user
+    // Get all chats for the user (participants are now included in each chat)
     const chats = await this.chatRepository.findByProfileId(profileId);
     
-    // Collect all unique participant IDs
-    const allParticipantIds = new Set<string>();
-    chats.forEach(chat => {
-      chat.participantsIds.forEach(id => allParticipantIds.add(id));
-    });
-
-    // Get all profiles in one query
-    const allProfiles = await this.profileRepository.findByIds(Array.from(allParticipantIds));
-
-    // Create profile lookup map
-    const profileMap = new Map<string, Profile>();
-    allProfiles.forEach(profile => {
-      profileMap.set(profile.id, profile);
-    });
-
-    // Map participants to chats
-    const participants: { [chatId: string]: Profile[] } = {};
-    chats.forEach(chat => {
-      const chatParticipants: Profile[] = [];
-      chat.participantsIds.forEach(participantId => {
-        const profile = profileMap.get(participantId);
-        if (profile) {
-          chatParticipants.push(profile);
-        }
-      });
-      participants[chat.id] = chatParticipants;
-    });
-
     return {
-      chats,
-      participants
+      chats
     };
   }
 }

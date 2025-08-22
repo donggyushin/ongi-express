@@ -97,10 +97,7 @@ export class ChatController {
       const response: ApiResponse = {
         success: true,
         data: {
-          chats: result.chats.map(chat => ({
-            ...chat.toJSON(),
-            participants: result.participants[chat.id]?.map(p => p.toJSON()) || []
-          }))
+          chats: result.chats.map(chat => chat.toJSON())
         },
         message: 'User chats retrieved successfully'
       };
