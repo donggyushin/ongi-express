@@ -17,6 +17,24 @@ export interface IGetUserChatsUseCase {
   }>;
 }
 
+export interface IGetChatByIdUseCase {
+  execute(
+    chatId: string, 
+    currentProfileId: string,
+    options?: {
+      limit?: number;
+      cursor?: string;
+    }
+  ): Promise<{
+    chat: Chat;
+    pagination: {
+      limit: number;
+      hasMore: boolean;
+      nextCursor?: string;
+    };
+  }>;
+}
+
 export interface IAddMessageUseCase {
   execute(chatId: string, writerProfileId: string, text: string): Promise<Message>;
 }
@@ -141,5 +159,52 @@ export class UpdateMessageReadInfoUseCase implements IUpdateMessageReadInfoUseCa
 
     // Update message read info
     return await this.chatRepository.updateMessageReadInfo(chatId, profileId, dateInfoUserViewedRecently);
+  }
+}
+
+export class GetChatByIdUseCase implements IGetChatByIdUseCase {
+  constructor(
+    private chatRepository: IChatRepository
+  ) {}
+
+  async execute(
+    chatId: string, 
+    currentProfileId: string,
+    options?: {
+      limit?: number;
+      cursor?: string;
+    }
+  ): Promise<{
+    chat: Chat;
+    pagination: {
+      limit: number;
+      hasMore: boolean;
+      nextCursor?: string;
+    };
+  }> {
+    const limit = options?.limit ? Math.min(Math.max(options.limit, 1), 50) : 20; // Between 1 and 50
+    
+    const chat = await this.chatRepository.findById(chatId, {
+      limit,
+      cursor: options?.cursor
+    });
+
+    if (!chat) {
+      throw new Error('Chat not found');
+    }
+
+    // Verify that the current user is a participant
+    if (!chat.participantsIds.includes(currentProfileId)) {
+      throw new Error('Not authorized to access this chat');
+    }
+
+    return {
+      chat,
+      pagination: {
+        limit,
+        hasMore: chat.messages.length === limit,
+        nextCursor: chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].id : undefined
+      }
+    };
   }
 }

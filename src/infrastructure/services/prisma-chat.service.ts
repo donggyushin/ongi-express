@@ -273,6 +273,154 @@ export class PrismaChatService implements IChatRepository {
     }
   }
 
+  async findById(
+    chatId: string,
+    options?: {
+      limit?: number;
+      cursor?: string;
+    }
+  ): Promise<Chat | null> {
+    try {
+      const limit = options?.limit ?? 20; // Default 20 messages per page
+      
+      const chat = await this.prisma.chat.findUnique({
+        where: {
+          id: chatId
+        },
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'desc' // Newest first
+            },
+            take: limit,
+            ...(options?.cursor && {
+              cursor: {
+                id: options.cursor
+              },
+              skip: 1 // Skip the cursor message itself
+            })
+          },
+          messageReadInfos: true
+        }
+      });
+
+      if (!chat) {
+        return null;
+      }
+
+      // Get participant profiles with optimized query
+      const participantProfiles = await this.prisma.profile.findMany({
+        where: {
+          id: { in: chat.participantsIds }
+        },
+        select: {
+          id: true,
+          accountId: true,
+          nickname: true,
+          email: true,
+          introduction: true,
+          mbti: true,
+          gender: true,
+          height: true,
+          weight: true,
+          lastTokenAuthAt: true,
+          createdAt: true,
+          updatedAt: true,
+          profileImage: {
+            select: {
+              url: true,
+              publicId: true
+            }
+          },
+          images: {
+            select: {
+              url: true,
+              publicId: true
+            },
+            take: 3
+          },
+          qnas: {
+            select: {
+              id: true,
+              question: true,
+              answer: true,
+              createdAt: true,
+              updatedAt: true
+            },
+            take: 2,
+            orderBy: {
+              createdAt: 'desc'
+            }
+          }
+        }
+      });
+
+      // Convert Prisma entities to domain entities
+      const messages = chat.messages.map(message => 
+        new Message(
+          message.id,
+          message.writerProfileId,
+          message.text,
+          message.createdAt,
+          message.updatedAt
+        )
+      );
+
+      const messageReadInfos = chat.messageReadInfos.map(info =>
+        new MessageReadInfo(
+          info.id,
+          info.profileId,
+          info.dateInfoUserViewedRecently
+        )
+      );
+
+      const participants = participantProfiles.map(profile => {
+        return new Profile(
+          profile.id,
+          profile.accountId,
+          profile.nickname,
+          profile.email,
+          profile.introduction,
+          profile.profileImage ? new Image(
+            profile.profileImage.url,
+            profile.profileImage.publicId
+          ) : null,
+          profile.images.map(img => new Image(
+            img.url,
+            img.publicId
+          )),
+          profile.mbti as any,
+          profile.gender as any,
+          profile.height,
+          profile.weight,
+          profile.lastTokenAuthAt,
+          profile.qnas.map(qna => new QnA(
+            qna.id,
+            qna.question,
+            qna.answer,
+            qna.createdAt,
+            qna.updatedAt
+          )),
+          profile.createdAt,
+          profile.updatedAt
+        );
+      });
+
+      return new Chat(
+        chat.id,
+        chat.participantsIds,
+        messages,
+        messageReadInfos,
+        participants,
+        chat.createdAt,
+        chat.updatedAt
+      );
+    } catch (error) {
+      console.error('Error finding chat by ID:', error);
+      throw new Error('Failed to find chat');
+    }
+  }
+
   async create(participantsIds: string[]): Promise<Chat> {
     try {
       const sortedIds = [...participantsIds].sort();

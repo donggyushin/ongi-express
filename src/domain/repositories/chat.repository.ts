@@ -5,6 +5,13 @@ export interface IChatRepository {
     participantsIds: string[]
   ): Promise<Chat | null>;
   findByProfileId(profileId: string): Promise<Chat[]>;
+  findById(
+    chatId: string,
+    options?: {
+      limit?: number;
+      cursor?: string;
+    }
+  ): Promise<Chat | null>;
   create(participantsIds: string[]): Promise<Chat>;
   updateMessageReadInfo(chatId: string, profileId: string, dateInfoUserViewedRecently: Date): Promise<Chat>;
 }

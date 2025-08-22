@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ICreateOrFindChatUseCase, IGetUserChatsUseCase, IAddMessageUseCase, IUpdateMessageReadInfoUseCase, IGetAccountUseCase } from '@/domain/use-cases';
+import { ICreateOrFindChatUseCase, IGetUserChatsUseCase, IAddMessageUseCase, IUpdateMessageReadInfoUseCase, IGetAccountUseCase, IGetChatByIdUseCase } from '@/domain/use-cases';
 import { ApiResponse } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
 
@@ -9,7 +9,8 @@ export class ChatController {
     private readonly getUserChatsUseCase: IGetUserChatsUseCase,
     private readonly addMessageUseCase: IAddMessageUseCase,
     private readonly updateMessageReadInfoUseCase: IUpdateMessageReadInfoUseCase,
-    private readonly getAccountUseCase: IGetAccountUseCase
+    private readonly getAccountUseCase: IGetAccountUseCase,
+    private readonly getChatByIdUseCase: IGetChatByIdUseCase
   ) {}
 
   async createOrFindChat(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -278,6 +279,87 @@ export class ChatController {
       if (error instanceof Error) {
         if (error.message.includes('Chat not found') || 
             error.message.includes('not authorized')) {
+          errorMessage = error.message;
+          statusCode = 403;
+        }
+      }
+
+      const response: ApiResponse = {
+        success: false,
+        error: errorMessage
+      };
+      
+      res.status(statusCode).json(response);
+    }
+  }
+
+  async getChatById(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.userId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'User ID not found in token'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      const { chatId } = req.params;
+
+      if (!chatId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Missing required parameter: chatId'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // Get current user's profile first
+      const currentAccount = await this.getAccountUseCase.execute(req.userId);
+      if (!currentAccount || !currentAccount.profile) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Current user profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      // Extract pagination parameters from query
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+      const cursor = req.query.cursor as string | undefined;
+
+      const result = await this.getChatByIdUseCase.execute(
+        chatId,
+        currentAccount.profile.id,
+        {
+          limit,
+          cursor
+        }
+      );
+      
+      const response: ApiResponse = {
+        success: true,
+        data: {
+          chat: result.chat.toJSON(),
+          pagination: result.pagination
+        },
+        message: 'Chat retrieved successfully'
+      };
+      
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Get chat by ID error:', error);
+      
+      let errorMessage = 'Failed to get chat';
+      let statusCode = 500;
+
+      if (error instanceof Error) {
+        if (error.message.includes('Chat not found')) {
+          errorMessage = error.message;
+          statusCode = 404;
+        } else if (error.message.includes('Not authorized')) {
           errorMessage = error.message;
           statusCode = 403;
         }

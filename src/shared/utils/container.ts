@@ -1,4 +1,4 @@
-import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase } from '@/domain/use-cases';
+import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase, GetChatByIdUseCase, IGetChatByIdUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
 import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository, IMessageRepository } from '@/domain/repositories';
 import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService } from '@/infrastructure/services';
@@ -84,6 +84,9 @@ export class Container {
     this.services.set('updateMessageReadInfoUseCase', new UpdateMessageReadInfoUseCase(
       this.get<IChatRepository>('chatRepository')
     ));
+    this.services.set('getChatByIdUseCase', new GetChatByIdUseCase(
+      this.get<IChatRepository>('chatRepository')
+    ));
 
     // Controllers
     this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));
@@ -104,7 +107,8 @@ export class Container {
       this.get<IGetUserChatsUseCase>('getUserChatsUseCase'),
       this.get<IAddMessageUseCase>('addMessageUseCase'),
       this.get<IUpdateMessageReadInfoUseCase>('updateMessageReadInfoUseCase'),
-      this.get<IGetAccountUseCase>('getAccountUseCase')
+      this.get<IGetAccountUseCase>('getAccountUseCase'),
+      this.get<IGetChatByIdUseCase>('getChatByIdUseCase')
     ));
 
     // Middlewares
