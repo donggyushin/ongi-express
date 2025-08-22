@@ -92,25 +92,33 @@ export class GetUserChatsUseCase implements IGetUserChatsUseCase {
     // Get all chats for the user
     const chats = await this.chatRepository.findByProfileId(profileId);
     
-    // Get all participants for each chat
+    // Collect all unique participant IDs
+    const allParticipantIds = new Set<string>();
+    chats.forEach(chat => {
+      chat.participantsIds.forEach(id => allParticipantIds.add(id));
+    });
+
+    // Get all profiles in one query
+    const allProfiles = await this.profileRepository.findByIds(Array.from(allParticipantIds));
+
+    // Create profile lookup map
+    const profileMap = new Map<string, Profile>();
+    allProfiles.forEach(profile => {
+      profileMap.set(profile.id, profile);
+    });
+
+    // Map participants to chats
     const participants: { [chatId: string]: Profile[] } = {};
-    
-    for (const chat of chats) {
+    chats.forEach(chat => {
       const chatParticipants: Profile[] = [];
-      
-      for (const participantId of chat.participantsIds) {
-        try {
-          const profile = await this.profileRepository.findById(participantId);
-          if (profile) {
-            chatParticipants.push(profile);
-          }
-        } catch (error) {
-          console.warn(`Profile not found: ${participantId}`);
+      chat.participantsIds.forEach(participantId => {
+        const profile = profileMap.get(participantId);
+        if (profile) {
+          chatParticipants.push(profile);
         }
-      }
-      
+      });
       participants[chat.id] = chatParticipants;
-    }
+    });
 
     return {
       chats,
