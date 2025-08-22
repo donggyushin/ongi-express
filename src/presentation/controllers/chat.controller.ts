@@ -45,32 +45,15 @@ export class ChatController {
         return;
       }
 
-      // Extract pagination parameters from query
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
-      const cursor = req.query.cursor as string | undefined;
-
-      // Validate limit
-      const validatedLimit = Math.min(Math.max(limit, 1), 100); // Between 1 and 100
-
       const result = await this.createOrFindChatUseCase.execute(
         currentAccount.profile.id, 
-        profileId,
-        {
-          limit: validatedLimit,
-          cursor
-        }
+        profileId
       );
       
       const response: ApiResponse = {
         success: true,
         data: {
-          chat: result.chat.toJSON(),
-          participants: result.participants.map(p => p.toJSON()),
-          pagination: {
-            limit: validatedLimit,
-            hasMore: result.chat.messages.length === validatedLimit,
-            nextCursor: result.chat.messages.length > 0 ? result.chat.messages[result.chat.messages.length - 1].id : undefined
-          }
+          chat: result.chat.toJSON()
         },
         message: 'Chat retrieved successfully'
       };

@@ -4,11 +4,7 @@ import { IChatRepository, IProfileRepository, IMessageRepository } from '@/domai
 export interface ICreateOrFindChatUseCase {
   execute(
     currentProfileId: string, 
-    targetProfileId: string,
-    options?: {
-      limit?: number;
-      cursor?: string;
-    }
+    targetProfileId: string
   ): Promise<{
     chat: Chat;
     participants: Profile[];
@@ -38,11 +34,7 @@ export class CreateOrFindChatUseCase implements ICreateOrFindChatUseCase {
 
   async execute(
     currentProfileId: string, 
-    targetProfileId: string,
-    options?: {
-      limit?: number;
-      cursor?: string;
-    }
+    targetProfileId: string
   ): Promise<{
     chat: Chat;
     participants: Profile[];
@@ -50,7 +42,7 @@ export class CreateOrFindChatUseCase implements ICreateOrFindChatUseCase {
     const participantsIds = [currentProfileId, targetProfileId];
     
     // Try to find existing chat first
-    let chat = await this.chatRepository.findByParticipantsIds(participantsIds, options);
+    let chat = await this.chatRepository.findByParticipantsIds(participantsIds);
     
     // If no existing chat, create a new one
     if (!chat) {

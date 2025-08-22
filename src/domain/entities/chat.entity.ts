@@ -1,5 +1,6 @@
 import { Message } from './message.entity';
 import { MessageReadInfo } from './message-read-info.entity';
+import { Profile } from './profile.entity';
 
 export class Chat {
   constructor(
@@ -7,6 +8,7 @@ export class Chat {
     public readonly participantsIds: string[],
     public readonly messages: Message[] = [],
     public readonly messageReadInfos: MessageReadInfo[] = [],
+    public readonly participants: Profile[] = [],
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
@@ -17,6 +19,7 @@ export class Chat {
       participantsIds: this.participantsIds,
       messages: this.messages.map(message => message.toJSON()),
       messageReadInfos: this.messageReadInfos.map(info => info.toJSON()),
+      participants: this.participants.map(participant => participant.toJSON()),
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString()
     };
