@@ -26,6 +26,10 @@ export interface IAddMessageUseCase {
   execute(chatId: string, writerProfileId: string, text: string): Promise<Message>;
 }
 
+export interface IUpdateMessageReadInfoUseCase {
+  execute(chatId: string, profileId: string, dateInfoUserViewedRecently: Date): Promise<Chat>;
+}
+
 export class CreateOrFindChatUseCase implements ICreateOrFindChatUseCase {
   constructor(
     private chatRepository: IChatRepository,
@@ -149,5 +153,24 @@ export class AddMessageUseCase implements IAddMessageUseCase {
     const message = await this.messageRepository.create(chatId, writerProfileId, text.trim());
 
     return message;
+  }
+}
+
+export class UpdateMessageReadInfoUseCase implements IUpdateMessageReadInfoUseCase {
+  constructor(
+    private chatRepository: IChatRepository
+  ) {}
+
+  async execute(chatId: string, profileId: string, dateInfoUserViewedRecently: Date): Promise<Chat> {
+    // Get user's chats to verify access
+    const userChats = await this.chatRepository.findByProfileId(profileId);
+    const targetChat = userChats.find(chat => chat.id === chatId);
+
+    if (!targetChat) {
+      throw new Error('Chat not found or user not authorized to access this chat');
+    }
+
+    // Update message read info
+    return await this.chatRepository.updateMessageReadInfo(chatId, profileId, dateInfoUserViewedRecently);
   }
 }

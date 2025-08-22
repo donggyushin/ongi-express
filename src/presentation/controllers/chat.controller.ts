@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ICreateOrFindChatUseCase, IGetUserChatsUseCase, IAddMessageUseCase, IGetAccountUseCase } from '@/domain/use-cases';
+import { ICreateOrFindChatUseCase, IGetUserChatsUseCase, IAddMessageUseCase, IUpdateMessageReadInfoUseCase, IGetAccountUseCase } from '@/domain/use-cases';
 import { ApiResponse } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
 
@@ -8,6 +8,7 @@ export class ChatController {
     private readonly createOrFindChatUseCase: ICreateOrFindChatUseCase,
     private readonly getUserChatsUseCase: IGetUserChatsUseCase,
     private readonly addMessageUseCase: IAddMessageUseCase,
+    private readonly updateMessageReadInfoUseCase: IUpdateMessageReadInfoUseCase,
     private readonly getAccountUseCase: IGetAccountUseCase
   ) {}
 
@@ -207,6 +208,98 @@ export class ChatController {
                    error.message.includes('too long')) {
           errorMessage = error.message;
           statusCode = 400;
+        }
+      }
+
+      const response: ApiResponse = {
+        success: false,
+        error: errorMessage
+      };
+      
+      res.status(statusCode).json(response);
+    }
+  }
+
+  async updateMessageReadInfo(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.userId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'User ID not found in token'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      const { chatId } = req.params;
+      const { dateInfoUserViewedRecently } = req.body;
+
+      if (!chatId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Missing required parameter: chatId'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      if (!dateInfoUserViewedRecently) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Missing required field: dateInfoUserViewedRecently'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // Validate date format
+      const date = new Date(dateInfoUserViewedRecently);
+      if (isNaN(date.getTime())) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Invalid date format for dateInfoUserViewedRecently'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // Get current user's profile first  
+      const currentAccount = await this.getAccountUseCase.execute(req.userId);
+      if (!currentAccount || !currentAccount.profile) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Current user profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      const chat = await this.updateMessageReadInfoUseCase.execute(
+        chatId,
+        currentAccount.profile.id,
+        date
+      );
+      
+      const response: ApiResponse = {
+        success: true,
+        data: {
+          chat: chat.toJSON()
+        },
+        message: 'Message read info updated successfully'
+      };
+      
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Update message read info error:', error);
+      
+      let errorMessage = 'Failed to update message read info';
+      let statusCode = 500;
+
+      if (error instanceof Error) {
+        if (error.message.includes('Chat not found') || 
+            error.message.includes('not authorized')) {
+          errorMessage = error.message;
+          statusCode = 403;
         }
       }
 
