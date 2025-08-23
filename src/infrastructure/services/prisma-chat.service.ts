@@ -120,6 +120,7 @@ export class PrismaChatService implements IChatRepository {
           profile.gender as any,
           profile.height,
           profile.weight,
+          null, // location - not loaded
           profile.lastTokenAuthAt,
           profile.qnas.map(qna => new QnA(
             qna.id,
@@ -227,6 +228,7 @@ export class PrismaChatService implements IChatRepository {
           profile.gender as any,
           profile.height,
           profile.weight,
+          null, // location - not loaded
           profile.lastTokenAuthAt,
           [], // No QnAs for chat list performance
           profile.createdAt,
@@ -393,6 +395,7 @@ export class PrismaChatService implements IChatRepository {
           profile.gender as any,
           profile.height,
           profile.weight,
+          null, // location - not loaded
           profile.lastTokenAuthAt,
           profile.qnas.map(qna => new QnA(
             qna.id,
@@ -579,6 +582,7 @@ export class PrismaChatService implements IChatRepository {
           profile.gender as any,
           profile.height,
           profile.weight,
+          null, // location - not loaded
           profile.lastTokenAuthAt,
           profile.qnas.map(qna => new QnA(
             qna.id,

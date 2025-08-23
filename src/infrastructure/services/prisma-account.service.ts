@@ -47,6 +47,7 @@ export class PrismaAccountService implements IAccountRepository {
         result.profile.gender as any,
         result.profile.height,
         result.profile.weight,
+        null, // location - not loaded
         result.profile.lastTokenAuthAt,
         result.profile.qnas.map(qna => new QnA(
           qna.id,
@@ -104,6 +105,7 @@ export class PrismaAccountService implements IAccountRepository {
         profile.gender as any,
         profile.height,
         profile.weight,
+        null, // location - not loaded
         profile.lastTokenAuthAt,
         profile.qnas.map(qna => new QnA(
           qna.id,
