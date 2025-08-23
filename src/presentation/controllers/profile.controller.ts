@@ -624,4 +624,54 @@ export class ProfileController {
       res.status(500).json(response);
     }
   };
+
+  public updateLocation = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { latitude, longitude } = req.body;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (latitude === undefined || longitude === undefined) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Both latitude and longitude are required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      if (typeof latitude !== 'number' || typeof longitude !== 'number') {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Latitude and longitude must be numbers'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const updatedProfile = await this.profileUseCase.updateLocation(accountId, latitude, longitude);
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: updatedProfile,
+        message: 'Location updated successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update location'
+      };
+      res.status(500).json(response);
+    }
+  };
 }

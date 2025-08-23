@@ -427,6 +427,62 @@ export class PrismaProfileService implements IProfileRepository {
     return profiles.map(profile => this.mapToProfileEntity(profile));
   }
 
+  async updateLocation(accountId: string, latitude: number, longitude: number): Promise<Profile> {
+    const profile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      select: { id: true, locationId: true }
+    });
+
+    if (!profile) {
+      throw new Error('Profile not found');
+    }
+
+    let updatedProfile;
+
+    if (profile.locationId) {
+      // Update existing location
+      await this.prisma.location.update({
+        where: { id: profile.locationId },
+        data: { latitude, longitude }
+      });
+
+      updatedProfile = await this.prisma.profile.findUnique({
+        where: { accountId },
+        include: {
+          qnas: true,
+          profileImage: true,
+          images: true,
+          location: true
+        }
+      });
+    } else {
+      // Create new location and link to profile
+      updatedProfile = await this.prisma.profile.update({
+        where: { accountId },
+        data: {
+          location: {
+            create: {
+              latitude,
+              longitude
+            }
+          }
+        },
+        include: {
+          qnas: true,
+          profileImage: true,
+          images: true,
+          location: true
+        }
+      });
+    }
+
+    if (!updatedProfile) {
+      throw new Error('Profile not found');
+    }
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
   async update(id: string, data: any): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },

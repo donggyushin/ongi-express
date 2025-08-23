@@ -9,6 +9,7 @@ export interface IProfileUseCase {
   updateGender(accountId: string, gender: string): Promise<Profile>;
   updatePhysicalInfo(accountId: string, height?: number, weight?: number): Promise<Profile>;
   updateIntroduction(accountId: string, introduction: string): Promise<Profile>;
+  updateLocation(accountId: string, latitude: number, longitude: number): Promise<Profile>;
   getProfile(accountId: string): Promise<Profile | null>;
   getProfileById(profileId: string, viewerAccountId?: string): Promise<Profile & { isNew?: boolean; isLikedByMe?: boolean } | null>;
   addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
@@ -329,6 +330,28 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update introduction
     const updatedProfile = await this.profileRepository.updateIntroduction(accountId, introduction.trim());
+
+    return updatedProfile;
+  }
+
+  async updateLocation(accountId: string, latitude: number, longitude: number): Promise<Profile> {
+    // Validate latitude and longitude
+    if (latitude < -90 || latitude > 90) {
+      throw new Error('Latitude must be between -90 and 90');
+    }
+
+    if (longitude < -180 || longitude > 180) {
+      throw new Error('Longitude must be between -180 and 180');
+    }
+
+    // Check if profile exists
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Update location
+    const updatedProfile = await this.profileRepository.updateLocation(accountId, latitude, longitude);
 
     return updatedProfile;
   }

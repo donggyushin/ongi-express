@@ -40,6 +40,9 @@ export class ProfileRoutes {
     // POST /profiles/me/introduction - Update current user introduction
     this.router.post('/me/introduction', AuthMiddleware.verifyToken, this.profileController.updateIntroduction);
 
+    // POST /profiles/me/location - Update current user location
+    this.router.post('/me/location', AuthMiddleware.verifyToken, this.profileController.updateLocation);
+
     // POST /profiles/me/qna - Add Q&A to profile
     this.router.post('/me/qna', AuthMiddleware.verifyToken, this.profileController.addQna);
 
