@@ -9,6 +9,7 @@ import { Container } from '@/shared/utils';
 import { ErrorMiddleware } from '@/presentation/middlewares';
 import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes, ChatRoutes } from '@/presentation/routes';
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
+import { NotificationRoutes } from '@/presentation/routes/NotificationRoutes';
 import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
 
 dotenv.config();
@@ -43,6 +44,7 @@ class App {
     const qnaExamplesRoutes = this.container.get<QnAExamplesRoutes>('qnaExamplesRoutes');
     const profileConnectionRoutes = this.container.get<ProfileConnectionRoutes>('profileConnectionRoutes');
     const chatRoutes = this.container.get<ChatRoutes>('chatRoutes');
+    const notificationRoutes = this.container.get<NotificationRoutes>('notificationRoutes');
 
     this.app.use('/', welcomeRoutes.getRouter());
     this.app.use('/health', healthRoutes.getRouter());
@@ -53,6 +55,7 @@ class App {
     this.app.use('/qna', qnaExamplesRoutes.getRouter());
     this.app.use('/profile-connections', profileConnectionRoutes.getRouter());
     this.app.use('/chats', chatRoutes.getRouter());
+    this.app.use('/notifications', notificationRoutes.getRouter());
   }
 
   private initializeErrorHandling(): void {

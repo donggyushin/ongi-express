@@ -1,17 +1,22 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase, GetChatByIdUseCase, IGetChatByIdUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
+import { NotificationUseCase, INotificationUseCase } from '@/domain/use-cases/notification.use-case';
 import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository, IMessageRepository } from '@/domain/repositories';
+import { IFirebaseService } from '@/domain/services/IFirebaseService';
 import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
 import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService, RealtimeChatService } from '@/infrastructure/services';
+import { FirebaseService } from '@/infrastructure/services/FirebaseService';
 import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma-email-verification.service';
 import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
 import { GmailService } from '@/infrastructure/services/gmail.service';
 import { IDatabaseService } from '@/shared/types';
 import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController, QnAExamplesController, ProfileConnectionController, ChatController } from '@/presentation/controllers';
 import { EmailVerificationController } from '@/presentation/controllers/email-verification.controller';
+import { NotificationController } from '@/presentation/controllers/NotificationController';
 import { ErrorMiddleware } from '@/presentation/middlewares';
 import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes, ChatRoutes } from '@/presentation/routes';
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
+import { NotificationRoutes } from '@/presentation/routes/NotificationRoutes';
 
 export class Container {
   private static instance: Container;
@@ -45,6 +50,7 @@ export class Container {
     this.services.set('systemRepository', new SystemService());
     this.services.set('jwtRepository', new JwtService());
     this.services.set('realtimeChatService', new RealtimeChatService());
+    this.services.set('firebaseService', new FirebaseService(this.get<ILoggerService>('logger')));
 
     // Use Cases
     this.services.set('healthUseCase', new HealthUseCase(this.get<ISystemRepository>('systemRepository')));
@@ -89,6 +95,7 @@ export class Container {
     this.services.set('getChatByIdUseCase', new GetChatByIdUseCase(
       this.get<IChatRepository>('chatRepository')
     ));
+    this.services.set('notificationUseCase', new NotificationUseCase(this.get<IFirebaseService>('firebaseService')));
 
     // Controllers
     this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));
@@ -113,6 +120,7 @@ export class Container {
       this.get<IGetChatByIdUseCase>('getChatByIdUseCase'),
       this.get<IRealtimeChatService>('realtimeChatService')
     ));
+    this.services.set('notificationController', new NotificationController(this.get<INotificationUseCase>('notificationUseCase')));
 
     // Middlewares
     this.services.set('errorMiddleware', new ErrorMiddleware(this.get<ILoggerService>('logger')));
@@ -127,6 +135,7 @@ export class Container {
     this.services.set('qnaExamplesRoutes', new QnAExamplesRoutes(this.get<QnAExamplesController>('qnaExamplesController')));
     this.services.set('profileConnectionRoutes', new ProfileConnectionRoutes(this.get<ProfileConnectionController>('profileConnectionController')));
     this.services.set('chatRoutes', new ChatRoutes(this.get<ChatController>('chatController')));
+    this.services.set('notificationRoutes', new NotificationRoutes(this.get<NotificationController>('notificationController')));
   }
 
   get<T>(serviceName: string): T {
