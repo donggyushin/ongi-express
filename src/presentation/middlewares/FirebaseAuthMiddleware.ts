@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import { IFirebaseService } from '@/domain/services/IFirebaseService';
-import { Container } from '@/shared/utils/container';
 import { ApiResponse } from '@/shared/types';
 
 export interface AuthenticatedRequest extends Request {
@@ -12,11 +11,7 @@ export interface AuthenticatedRequest extends Request {
 }
 
 export class FirebaseAuthMiddleware {
-  private firebaseService: IFirebaseService;
-
-  constructor() {
-    this.firebaseService = Container.getInstance().get<IFirebaseService>('firebaseService');
-  }
+  constructor(private readonly firebaseService: IFirebaseService) {}
 
   /**
    * Middleware to verify Firebase ID token

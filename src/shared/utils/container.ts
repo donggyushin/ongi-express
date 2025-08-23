@@ -135,7 +135,10 @@ export class Container {
     this.services.set('qnaExamplesRoutes', new QnAExamplesRoutes(this.get<QnAExamplesController>('qnaExamplesController')));
     this.services.set('profileConnectionRoutes', new ProfileConnectionRoutes(this.get<ProfileConnectionController>('profileConnectionController')));
     this.services.set('chatRoutes', new ChatRoutes(this.get<ChatController>('chatController')));
-    this.services.set('notificationRoutes', new NotificationRoutes(this.get<NotificationController>('notificationController')));
+    this.services.set('notificationRoutes', new NotificationRoutes(
+      this.get<NotificationController>('notificationController'),
+      this.get<IFirebaseService>('firebaseService')
+    ));
   }
 
   get<T>(serviceName: string): T {

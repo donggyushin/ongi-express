@@ -1,14 +1,18 @@
 import { Router } from 'express';
 import { NotificationController } from '@/presentation/controllers/NotificationController';
 import { FirebaseAuthMiddleware } from '@/presentation/middlewares/FirebaseAuthMiddleware';
+import { IFirebaseService } from '@/domain/services/IFirebaseService';
 
 export class NotificationRoutes {
   private router: Router;
   private authMiddleware: FirebaseAuthMiddleware;
 
-  constructor(private readonly notificationController: NotificationController) {
+  constructor(
+    private readonly notificationController: NotificationController,
+    private readonly firebaseService: IFirebaseService
+  ) {
     this.router = Router();
-    this.authMiddleware = new FirebaseAuthMiddleware();
+    this.authMiddleware = new FirebaseAuthMiddleware(this.firebaseService);
     this.initializeRoutes();
   }
 
