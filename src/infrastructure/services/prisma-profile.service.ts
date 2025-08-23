@@ -1,6 +1,6 @@
 import { PrismaClient } from '../../generated/prisma';
 import { IProfileRepository } from '@/domain/repositories';
-import { Profile, Image, QnA } from '@/domain/entities';
+import { Profile, Image, QnA, Location } from '@/domain/entities';
 
 export class PrismaProfileService implements IProfileRepository {
   constructor(private prisma: PrismaClient) {}
@@ -11,7 +11,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -30,7 +31,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -45,7 +47,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -66,7 +69,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -80,7 +84,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -94,7 +99,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -115,7 +121,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -147,7 +154,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -184,7 +192,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -220,7 +229,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -259,7 +269,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -277,7 +288,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -301,7 +313,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -315,7 +328,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -341,7 +355,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       },
       take: 10
     });
@@ -373,7 +388,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       },
       take: 10
     });
@@ -400,7 +416,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       },
       orderBy: {
         lastTokenAuthAt: 'desc'
@@ -417,7 +434,8 @@ export class PrismaProfileService implements IProfileRepository {
       include: {
         qnas: true,
         profileImage: true,
-        images: true
+        images: true,
+        location: true
       }
     });
 
@@ -437,6 +455,13 @@ export class PrismaProfileService implements IProfileRepository {
       profile.gender as any,
       profile.height,
       profile.weight,
+      profile.location ? new Location(
+        profile.location.id,
+        profile.location.latitude,
+        profile.location.longitude,
+        profile.location.createdAt,
+        profile.location.updatedAt
+      ) : null,
       profile.lastTokenAuthAt,
       profile.qnas.map((qna: any) => new QnA(
         qna.id,

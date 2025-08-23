@@ -48,6 +48,8 @@ model Profile {
   gender       GenderType?
   height       Float?
   weight       Float?
+  location     Location?   @relation(fields: [locationId], references: [id])
+  locationId   String?     @unique @map("location_id")
   lastTokenAuthAt DateTime? @map("last_token_auth_at")
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
@@ -182,6 +184,18 @@ model MessageReadInfo {
   @@map("message_read_infos")
   @@index([profileId])
   @@index([chatId])
+}
+
+model Location {
+  id        String   @id @default(cuid())
+  latitude  Float
+  longitude Float
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  profile   Profile?
+
+  @@map("locations")
 }
 
 model Chat {

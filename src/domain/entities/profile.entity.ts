@@ -1,5 +1,6 @@
 import { QnA } from './qna.entity';
 import { Image } from './image.entity';
+import { Location } from './location.entity';
 
 export enum MBTIType {
   INTJ = 'INTJ',
@@ -45,6 +46,7 @@ export class Profile {
     public readonly gender: GenderType | null = null,
     public readonly height: number | null = null,
     public readonly weight: number | null = null,
+    public readonly location: Location | null = null,
     public readonly lastTokenAuthAt: Date | null = null,
     public readonly qnas: QnA[] = [],
     public readonly createdAt: Date = new Date(),
@@ -107,6 +109,7 @@ export class Profile {
       gender: this.gender,
       height: this.height,
       weight: this.weight,
+      location: this.location?.toJSON() ?? null,
       lastTokenAuthAt: this.lastTokenAuthAt?.toISOString() ?? null,
       bodyType: this.bodyType,
       qnas: this.qnas.map(qna => qna.toJSON()),
