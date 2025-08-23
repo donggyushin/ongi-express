@@ -3,22 +3,26 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import dotenv from 'dotenv';
+import { createServer } from 'http';
 
 import { Container } from '@/shared/utils';
 import { ErrorMiddleware } from '@/presentation/middlewares';
 import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes, ChatRoutes } from '@/presentation/routes';
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
+import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
 
 dotenv.config();
 
 class App {
   private app = express();
+  private server = createServer(this.app);
   private container = Container.getInstance();
 
   constructor() {
     this.initializeMiddlewares();
     this.initializeRoutes();
     this.initializeErrorHandling();
+    this.initializeWebSocket();
   }
 
   private initializeMiddlewares(): void {
@@ -60,12 +64,19 @@ class App {
     );
   }
 
+  private initializeWebSocket(): void {
+    const realtimeChatService = this.container.get<IRealtimeChatService>('realtimeChatService');
+    realtimeChatService.initialize(this.server);
+    console.log('💬 WebSocket server initialized for real-time chat');
+  }
+
   public listen(): void {
     const PORT = process.env.PORT || 3000;
 
-    this.app.listen(PORT, () => {
+    this.server.listen(PORT, () => {
       console.log(`🚀 Ongi server is running on port ${PORT}`);
       console.log(`📍 Health check: http://localhost:${PORT}/health`);
+      console.log(`💬 WebSocket server ready for real-time chat`);
     });
   }
 

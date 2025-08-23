@@ -9,3 +9,4 @@ export * from './prisma-profile.service';
 export * from './prisma-profile-connection.service';
 export * from './prisma-chat.service';
 export * from './prisma-message.service';
+export * from './realtime-chat.service';

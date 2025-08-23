@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { ICreateOrFindChatUseCase, IGetUserChatsUseCase, IAddMessageUseCase, IUpdateMessageReadInfoUseCase, IGetAccountUseCase, IGetChatByIdUseCase } from '@/domain/use-cases';
 import { ApiResponse } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
+import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
 
 export class ChatController {
   constructor(
@@ -10,7 +11,8 @@ export class ChatController {
     private readonly addMessageUseCase: IAddMessageUseCase,
     private readonly updateMessageReadInfoUseCase: IUpdateMessageReadInfoUseCase,
     private readonly getAccountUseCase: IGetAccountUseCase,
-    private readonly getChatByIdUseCase: IGetChatByIdUseCase
+    private readonly getChatByIdUseCase: IGetChatByIdUseCase,
+    private readonly realtimeChatService: IRealtimeChatService
   ) {}
 
   async createOrFindChat(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -163,6 +165,15 @@ export class ChatController {
         currentAccount.profile.id,
         text
       );
+
+      // Broadcast message to all users in the chat room
+      this.realtimeChatService.broadcastMessage(chatId, {
+        id: message.id,
+        writerProfileId: message.writerProfileId,
+        text: message.text,
+        createdAt: message.createdAt.toISOString(),
+        updatedAt: message.updatedAt.toISOString()
+      });
       
       const response: ApiResponse = {
         success: true,

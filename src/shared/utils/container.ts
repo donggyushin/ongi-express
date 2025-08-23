@@ -1,7 +1,8 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase, GetChatByIdUseCase, IGetChatByIdUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
 import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository, IMessageRepository } from '@/domain/repositories';
-import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService } from '@/infrastructure/services';
+import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
+import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService, RealtimeChatService } from '@/infrastructure/services';
 import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma-email-verification.service';
 import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
 import { GmailService } from '@/infrastructure/services/gmail.service';
@@ -43,6 +44,7 @@ export class Container {
     this.services.set('emailService', new GmailService());
     this.services.set('systemRepository', new SystemService());
     this.services.set('jwtRepository', new JwtService());
+    this.services.set('realtimeChatService', new RealtimeChatService());
 
     // Use Cases
     this.services.set('healthUseCase', new HealthUseCase(this.get<ISystemRepository>('systemRepository')));
@@ -108,7 +110,8 @@ export class Container {
       this.get<IAddMessageUseCase>('addMessageUseCase'),
       this.get<IUpdateMessageReadInfoUseCase>('updateMessageReadInfoUseCase'),
       this.get<IGetAccountUseCase>('getAccountUseCase'),
-      this.get<IGetChatByIdUseCase>('getChatByIdUseCase')
+      this.get<IGetChatByIdUseCase>('getChatByIdUseCase'),
+      this.get<IRealtimeChatService>('realtimeChatService')
     ));
 
     // Middlewares
