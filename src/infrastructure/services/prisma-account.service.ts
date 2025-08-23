@@ -1,4 +1,4 @@
-import { Account, AccountType, Profile, QnA, Image } from '@/domain/entities';
+import { Account, AccountType, Profile, QnA, Image, Location } from '@/domain/entities';
 import { IAccountRepository } from '@/domain/repositories';
 import { PrismaClient } from '../../generated/prisma';
 import { generateFriendlyNickname } from '@/shared/utils';
@@ -25,7 +25,8 @@ export class PrismaAccountService implements IAccountRepository {
           include: {
             qnas: true,
             profileImage: true,
-            images: true
+            images: true,
+            location: true
           }
         });
 
@@ -47,7 +48,13 @@ export class PrismaAccountService implements IAccountRepository {
         result.profile.gender as any,
         result.profile.height,
         result.profile.weight,
-        null, // location - not loaded
+        result.profile.location ? new Location(
+          result.profile.location.id,
+          result.profile.location.latitude,
+          result.profile.location.longitude,
+          result.profile.location.createdAt,
+          result.profile.location.updatedAt
+        ) : null,
         result.profile.lastTokenAuthAt,
         result.profile.qnas.map(qna => new QnA(
           qna.id,
@@ -82,7 +89,8 @@ export class PrismaAccountService implements IAccountRepository {
         include: {
           qnas: true,
           profileImage: true,
-          images: true
+          images: true,
+          location: true
         }
       });
 
@@ -105,7 +113,13 @@ export class PrismaAccountService implements IAccountRepository {
         profile.gender as any,
         profile.height,
         profile.weight,
-        null, // location - not loaded
+        profile.location ? new Location(
+          profile.location.id,
+          profile.location.latitude,
+          profile.location.longitude,
+          profile.location.createdAt,
+          profile.location.updatedAt
+        ) : null,
         profile.lastTokenAuthAt,
         profile.qnas.map(qna => new QnA(
           qna.id,

@@ -1,6 +1,6 @@
 import { PrismaClient } from '../../generated/prisma';
 import { IProfileConnectionRepository } from '@/domain/repositories';
-import { ProfileConnection, ConnectedProfile, Profile, Image, QnA } from '@/domain/entities';
+import { ProfileConnection, ConnectedProfile, Profile, Image, QnA, Location } from '@/domain/entities';
 
 export class PrismaProfileConnectionService implements IProfileConnectionRepository {
   constructor(private prisma: PrismaClient) {}
@@ -201,7 +201,8 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
               include: {
                 qnas: true,
                 profileImage: true,
-                images: true
+                images: true,
+                location: true
               }
             }
           },
@@ -336,6 +337,13 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
       profile.gender as any,
       profile.height,
       profile.weight,
+      profile.location ? new Location(
+        profile.location.id,
+        profile.location.latitude,
+        profile.location.longitude,
+        profile.location.createdAt,
+        profile.location.updatedAt
+      ) : null,
       profile.lastTokenAuthAt,
       profile.qnas.map((qna: any) => new QnA(
         qna.id,
