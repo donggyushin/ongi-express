@@ -43,6 +43,9 @@ export class ProfileRoutes {
     // POST /profiles/me/location - Update current user location
     this.router.post('/me/location', AuthMiddleware.verifyToken, this.profileController.updateLocation);
 
+    // POST /profiles/me/fcm-token - Update current user FCM token
+    this.router.post('/me/fcm-token', AuthMiddleware.verifyToken, this.profileController.updateFcmToken);
+
     // POST /profiles/me/qna - Add Q&A to profile
     this.router.post('/me/qna', AuthMiddleware.verifyToken, this.profileController.addQna);
 

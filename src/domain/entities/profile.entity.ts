@@ -48,6 +48,7 @@ export class Profile {
     public readonly weight: number | null = null,
     public readonly location: Location | null = null,
     public readonly lastTokenAuthAt: Date | null = null,
+    public readonly fcmToken: string | null = null,
     public readonly qnas: QnA[] = [],
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
@@ -111,6 +112,7 @@ export class Profile {
       weight: this.weight,
       location: this.location?.toJSON() ?? null,
       lastTokenAuthAt: this.lastTokenAuthAt?.toISOString() ?? null,
+      fcmToken: this.fcmToken,
       bodyType: this.bodyType,
       qnas: this.qnas.map(qna => qna.toJSON()),
       createdAt: this.createdAt.toISOString(),

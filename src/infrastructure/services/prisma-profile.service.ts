@@ -483,6 +483,21 @@ export class PrismaProfileService implements IProfileRepository {
     return this.mapToProfileEntity(updatedProfile);
   }
 
+  async updateFcmToken(accountId: string, fcmToken: string): Promise<Profile> {
+    const updatedProfile = await this.prisma.profile.update({
+      where: { accountId },
+      data: { fcmToken },
+      include: {
+        qnas: true,
+        profileImage: true,
+        images: true,
+        location: true
+      }
+    });
+
+    return this.mapToProfileEntity(updatedProfile);
+  }
+
   async update(id: string, data: any): Promise<Profile> {
     const updatedProfile = await this.prisma.profile.update({
       where: { id },
@@ -519,6 +534,7 @@ export class PrismaProfileService implements IProfileRepository {
         profile.location.updatedAt
       ) : null,
       profile.lastTokenAuthAt,
+      profile.fcmToken,
       profile.qnas.map((qna: any) => new QnA(
         qna.id,
         qna.question,

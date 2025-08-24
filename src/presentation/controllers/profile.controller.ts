@@ -674,4 +674,54 @@ export class ProfileController {
       res.status(500).json(response);
     }
   };
+
+  public updateFcmToken = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { fcmToken } = req.body;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!fcmToken) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'FCM token is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      if (typeof fcmToken !== 'string') {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'FCM token must be a string'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const updatedProfile = await this.profileUseCase.updateFcmToken(accountId, fcmToken);
+
+      const response: ApiResponse<Profile> = {
+        success: true,
+        data: updatedProfile,
+        message: 'FCM token updated successfully'
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to update FCM token'
+      };
+      res.status(500).json(response);
+    }
+  };
 }

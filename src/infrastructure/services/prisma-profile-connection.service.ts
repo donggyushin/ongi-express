@@ -345,6 +345,7 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
         profile.location.updatedAt
       ) : null,
       profile.lastTokenAuthAt,
+      profile.fcmToken,
       profile.qnas.map((qna: any) => new QnA(
         qna.id,
         qna.question,

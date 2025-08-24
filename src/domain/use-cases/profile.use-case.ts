@@ -10,6 +10,7 @@ export interface IProfileUseCase {
   updatePhysicalInfo(accountId: string, height?: number, weight?: number): Promise<Profile>;
   updateIntroduction(accountId: string, introduction: string): Promise<Profile>;
   updateLocation(accountId: string, latitude: number, longitude: number): Promise<Profile>;
+  updateFcmToken(accountId: string, fcmToken: string): Promise<Profile>;
   getProfile(accountId: string): Promise<Profile | null>;
   getProfileById(profileId: string, viewerAccountId?: string): Promise<Profile & { isNew?: boolean; isLikedByMe?: boolean } | null>;
   addImage(accountId: string, imageFile: Buffer, fileName: string): Promise<Profile>;
@@ -352,6 +353,24 @@ export class ProfileUseCase implements IProfileUseCase {
 
     // Update location
     const updatedProfile = await this.profileRepository.updateLocation(accountId, latitude, longitude);
+
+    return updatedProfile;
+  }
+
+  async updateFcmToken(accountId: string, fcmToken: string): Promise<Profile> {
+    // Validate FCM token
+    if (!fcmToken || fcmToken.trim().length === 0) {
+      throw new Error('FCM token is required');
+    }
+
+    // Check if profile exists
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Update FCM token
+    const updatedProfile = await this.profileRepository.updateFcmToken(accountId, fcmToken.trim());
 
     return updatedProfile;
   }

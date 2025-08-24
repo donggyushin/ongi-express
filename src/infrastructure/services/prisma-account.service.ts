@@ -56,6 +56,7 @@ export class PrismaAccountService implements IAccountRepository {
           result.profile.location.updatedAt
         ) : null,
         result.profile.lastTokenAuthAt,
+        result.profile.fcmToken,
         result.profile.qnas.map(qna => new QnA(
           qna.id,
           qna.question,
@@ -121,6 +122,7 @@ export class PrismaAccountService implements IAccountRepository {
           profile.location.updatedAt
         ) : null,
         profile.lastTokenAuthAt,
+        profile.fcmToken,
         profile.qnas.map(qna => new QnA(
           qna.id,
           qna.question,

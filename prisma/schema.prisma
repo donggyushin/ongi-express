@@ -51,6 +51,7 @@ model Profile {
   location     Location?   @relation(fields: [locationId], references: [id])
   locationId   String?     @unique @map("location_id")
   lastTokenAuthAt DateTime? @map("last_token_auth_at")
+  fcmToken     String?     @map("fcm_token")
   createdAt    DateTime    @default(now()) @map("created_at")
   updatedAt    DateTime    @updatedAt @map("updated_at")
   
