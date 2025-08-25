@@ -75,7 +75,8 @@ export class Container {
     this.services.set('qnaExamplesUseCase', new QnAExamplesUseCase());
     this.services.set('profileConnectionUseCase', new ProfileConnectionUseCase(
       this.get<IProfileConnectionRepository>('profileConnectionRepository'),
-      this.get<IProfileRepository>('profileRepository')
+      this.get<IProfileRepository>('profileRepository'),
+      this.get<IFirebaseService>('firebaseService')
     ));
     this.services.set('createOrFindChatUseCase', new CreateOrFindChatUseCase(
       this.get<IChatRepository>('chatRepository'),

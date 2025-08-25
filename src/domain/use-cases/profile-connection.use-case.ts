@@ -1,5 +1,6 @@
 import { ProfileConnection, Profile } from '@/domain/entities';
 import { IProfileConnectionRepository, IProfileRepository } from '@/domain/repositories';
+import { IFirebaseService } from '@/domain/services/IFirebaseService';
 
 export interface IProfileConnectionUseCase {
   addRandomConnection(profileId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }>;
@@ -14,7 +15,8 @@ export interface IProfileConnectionUseCase {
 export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
   constructor(
     private profileConnectionRepository: IProfileConnectionRepository,
-    private profileRepository: IProfileRepository
+    private profileRepository: IProfileRepository,
+    private firebaseService: IFirebaseService
   ) {}
 
   async addRandomConnection(profileId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }> {
@@ -133,6 +135,24 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
 
     // 4. 좋아요 추가
     await this.profileConnectionRepository.addLike(likerProfile.id, likedProfileId);
+
+    // 5. Push notification 전송 (FCM 토큰이 있는 경우)
+    if (likedProfile.fcmToken) {
+      try {
+        await this.firebaseService.sendToDevice(
+          likedProfile.fcmToken,
+          '새로운 좋아요 💖',
+          `${likerProfile.nickname}님이 당신을 좋아합니다!`,
+          {
+            type: 'like',
+            url_scheme: 'ongi://profiles-like-me'
+          }
+        );
+      } catch (error) {
+        // Push notification 실패는 좋아요 기능 자체를 실패시키지 않음
+        console.error('Failed to send push notification for like:', error);
+      }
+    }
   }
 
   async unlikeProfile(likerAccountId: string, likedProfileId: string): Promise<void> {
