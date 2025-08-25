@@ -1,5 +1,6 @@
 import { Chat, Profile, Message } from '@/domain/entities';
 import { IChatRepository, IProfileRepository, IMessageRepository } from '@/domain/repositories';
+import { IFirebaseService } from '@/domain/services/IFirebaseService';
 
 export interface ICreateOrFindChatUseCase {
   execute(
@@ -109,7 +110,9 @@ export class GetUserChatsUseCase implements IGetUserChatsUseCase {
 export class AddMessageUseCase implements IAddMessageUseCase {
   constructor(
     private messageRepository: IMessageRepository,
-    private chatRepository: IChatRepository
+    private chatRepository: IChatRepository,
+    private profileRepository: IProfileRepository,
+    private firebaseService: IFirebaseService
   ) {}
 
   async execute(chatId: string, writerProfileId: string, text: string): Promise<Message> {
@@ -136,8 +139,48 @@ export class AddMessageUseCase implements IAddMessageUseCase {
       throw new Error('User is not a participant of this chat');
     }
 
+    // Get writer profile for notification
+    const writerProfile = await this.profileRepository.findById(writerProfileId);
+    if (!writerProfile) {
+      throw new Error('Writer profile not found');
+    }
+
     // Create the message
     const message = await this.messageRepository.create(chatId, writerProfileId, text.trim());
+
+    // Send push notifications to other participants
+    const otherParticipantIds = targetChat.participantsIds.filter(id => id !== writerProfileId);
+    
+    if (otherParticipantIds.length > 0) {
+      try {
+        // Get profiles of other participants
+        const otherParticipants = await Promise.all(
+          otherParticipantIds.map(id => this.profileRepository.findById(id))
+        );
+
+        // Filter out profiles that don't exist and get FCM tokens
+        const fcmTokens = otherParticipants
+          .filter(profile => profile && profile.fcmToken)
+          .map(profile => profile!.fcmToken!);
+
+        // Send push notification if there are valid FCM tokens
+        if (fcmTokens.length > 0) {
+          await this.firebaseService.sendToMultipleDevices(
+            fcmTokens,
+            `${writerProfile.nickname}님이 메시지를 보냈습니다`,
+            text.length > 100 ? text.substring(0, 100) + '...' : text,
+            {
+              type: 'message',
+              chatId: chatId,
+              url_scheme: `ongi://chats/${chatId}`
+            }
+          );
+        }
+      } catch (error) {
+        // Push notification 실패는 메시지 전송 자체를 실패시키지 않음
+        console.error('Failed to send push notification for message:', error);
+      }
+    }
 
     return message;
   }

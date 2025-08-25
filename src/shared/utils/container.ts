@@ -88,7 +88,9 @@ export class Container {
     ));
     this.services.set('addMessageUseCase', new AddMessageUseCase(
       this.get<IMessageRepository>('messageRepository'),
-      this.get<IChatRepository>('chatRepository')
+      this.get<IChatRepository>('chatRepository'),
+      this.get<IProfileRepository>('profileRepository'),
+      this.get<IFirebaseService>('firebaseService')
     ));
     this.services.set('updateMessageReadInfoUseCase', new UpdateMessageReadInfoUseCase(
       this.get<IChatRepository>('chatRepository')
