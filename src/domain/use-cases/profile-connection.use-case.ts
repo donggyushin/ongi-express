@@ -8,7 +8,7 @@ export interface IProfileConnectionUseCase {
     profiles: (Profile & { 
       isNew: boolean; 
       reportStatus: {
-        iReported: boolean;
+        isReported: boolean;
         theyReported: boolean;
       };
     })[]; 
@@ -78,7 +78,7 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     profiles: (Profile & { 
       isNew: boolean; 
       reportStatus: {
-        iReported: boolean;
+        isReported: boolean;
         theyReported: boolean;
       };
     })[]; 
@@ -105,7 +105,7 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     const profilesWithReportStatus = result.profiles.map(profile => {
       const profileWithReportStatus = Object.assign(profile, {
         reportStatus: reportStatuses[profile.id] || {
-          iReported: false,
+          isReported: false,
           theyReported: false
         }
       });

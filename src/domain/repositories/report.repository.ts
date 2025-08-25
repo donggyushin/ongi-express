@@ -34,7 +34,7 @@ export interface IReportRepository {
    */
   getMultipleReportStatuses(userId: string, otherUserIds: string[]): Promise<{
     [otherUserId: string]: {
-      iReported: boolean;
+      isReported: boolean;
       theyReported: boolean;
     };
   }>;

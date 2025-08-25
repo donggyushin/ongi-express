@@ -104,7 +104,7 @@ export class PrismaReportService implements IReportRepository {
 
   async getMultipleReportStatuses(userId: string, otherUserIds: string[]): Promise<{
     [otherUserId: string]: {
-      iReported: boolean;
+      isReported: boolean;
       theyReported: boolean;
     };
   }> {
@@ -143,11 +143,11 @@ export class PrismaReportService implements IReportRepository {
     const reportedMe = new Set(reportsAgainstMe.map(r => r.reporterId));
 
     // Build result object
-    const result: { [otherUserId: string]: { iReported: boolean; theyReported: boolean } } = {};
+    const result: { [otherUserId: string]: { isReported: boolean; theyReported: boolean } } = {};
     
     for (const otherUserId of otherUserIds) {
       result[otherUserId] = {
-        iReported: reportedByMe.has(otherUserId),
+        isReported: reportedByMe.has(otherUserId),
         theyReported: reportedMe.has(otherUserId)
       };
     }
