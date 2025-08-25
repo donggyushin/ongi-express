@@ -6,3 +6,4 @@ export * from './profile.use-case';
 export * from './qna-examples.use-case';
 export * from './profile-connection.use-case';
 export * from './chat.use-case';
+export * from './report.use-case';

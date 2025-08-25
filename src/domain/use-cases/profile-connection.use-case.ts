@@ -1,10 +1,20 @@
 import { ProfileConnection, Profile } from '@/domain/entities';
-import { IProfileConnectionRepository, IProfileRepository } from '@/domain/repositories';
+import { IProfileConnectionRepository, IProfileRepository, IReportRepository } from '@/domain/repositories';
 import { IFirebaseService } from '@/domain/services/IFirebaseService';
 
 export interface IProfileConnectionUseCase {
   addRandomConnection(profileId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }>;
-  getConnectedProfiles(accountId: string, limit?: number): Promise<{ profiles: (Profile & { isNew: boolean })[]; newProfileIds: string[]; profileConnection: ProfileConnection | null }>;
+  getConnectedProfiles(accountId: string, limit?: number): Promise<{ 
+    profiles: (Profile & { 
+      isNew: boolean; 
+      reportStatus: {
+        iReported: boolean;
+        theyReported: boolean;
+      };
+    })[]; 
+    newProfileIds: string[]; 
+    profileConnection: ProfileConnection | null;
+  }>;
   markConnectionAsViewed(accountId: string, otherProfileId: string): Promise<ProfileConnection>;
   generateConnectionsForRecentlyActiveProfiles(): Promise<{ processed: number; connectionsCreated: number }>;
   likeProfile(likerAccountId: string, likedProfileId: string): Promise<void>;
@@ -16,7 +26,8 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
   constructor(
     private profileConnectionRepository: IProfileConnectionRepository,
     private profileRepository: IProfileRepository,
-    private firebaseService: IFirebaseService
+    private firebaseService: IFirebaseService,
+    private reportRepository: IReportRepository
   ) {}
 
   async addRandomConnection(profileId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }> {
@@ -63,7 +74,17 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     return { connection: updatedConnection, addedProfile: randomProfile };
   }
 
-  async getConnectedProfiles(accountId: string, limit?: number): Promise<{ profiles: (Profile & { isNew: boolean })[]; newProfileIds: string[]; profileConnection: ProfileConnection | null }> {
+  async getConnectedProfiles(accountId: string, limit?: number): Promise<{ 
+    profiles: (Profile & { 
+      isNew: boolean; 
+      reportStatus: {
+        iReported: boolean;
+        theyReported: boolean;
+      };
+    })[]; 
+    newProfileIds: string[]; 
+    profileConnection: ProfileConnection | null;
+  }> {
     // accountId로 프로필 조회
     const currentProfile = await this.profileRepository.findByAccountId(accountId);
     if (!currentProfile) {
@@ -73,8 +94,25 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     const result = await this.profileConnectionRepository.getConnectedProfiles(currentProfile.id, limit);
     const profileConnection = await this.profileConnectionRepository.findByProfileId(currentProfile.id);
 
+    // Get report statuses for all connected profiles
+    const otherProfileIds = result.profiles.map(profile => profile.id);
+    const reportStatuses = await this.reportRepository.getMultipleReportStatuses(
+      currentProfile.id, 
+      otherProfileIds
+    );
+
+    // Combine profiles with report status
+    const profilesWithReportStatus = result.profiles.map(profile => ({
+      ...profile,
+      reportStatus: reportStatuses[profile.id] || {
+        iReported: false,
+        theyReported: false
+      }
+    }));
+
     return {
-      ...result,
+      profiles: profilesWithReportStatus,
+      newProfileIds: result.newProfileIds,
       profileConnection
     };
   }

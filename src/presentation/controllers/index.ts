@@ -6,3 +6,4 @@ export * from './profile.controller';
 export * from './qna-examples.controller';
 export * from './profile-connection.controller';
 export * from './chat.controller';
+export * from './report.controller';

@@ -7,3 +7,4 @@ export * from './email-verification.repository';
 export * from './profile-connection.repository';
 export * from './chat.repository';
 export * from './message.repository';
+export * from './report.repository';
