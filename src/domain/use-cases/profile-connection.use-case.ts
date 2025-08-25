@@ -144,6 +144,24 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
         
         if (result.addedProfile) {
           connectionsCreated++;
+          
+          // 새로운 연결이 생성된 경우 해당 프로필에게 푸시 알림 전송
+          if (profile.fcmToken) {
+            try {
+              await this.firebaseService.sendToDevice(
+                profile.fcmToken,
+                '새로운 인연이 생겼어요! 💕',
+                `새로운 프로필과 연결되었습니다. 지금 확인해보세요!`,
+                {
+                  type: 'new_connection',
+                  url_scheme: 'ongi://profiles'
+                }
+              );
+            } catch (error) {
+              // Push notification 실패는 연결 생성 자체를 실패시키지 않음
+              console.error(`Failed to send push notification to profile ${profile.id}:`, error);
+            }
+          }
         }
       } catch (error) {
         // 에러가 발생해도 계속 진행 (예: 성별 미설정, 연결할 프로필 없음 등)
