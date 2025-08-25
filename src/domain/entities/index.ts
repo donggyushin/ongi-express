@@ -12,3 +12,4 @@ export * from './message.entity';
 export * from './message-read-info.entity';
 export * from './chat.entity';
 export * from './location.entity';
+export * from './report.entity';

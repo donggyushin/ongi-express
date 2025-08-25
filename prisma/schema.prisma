@@ -212,3 +212,17 @@ model Chat {
   @@index([participantsIds]) // For finding chats by participants
   @@index([updatedAt])       // For sorting by most recent
 }
+
+model Report {
+  id         String   @id @default(cuid())
+  reporterId String   @map("reporter_id")
+  reportedId String   @map("reported_id")
+  content    String   @db.VarChar(1000)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@map("reports")
+  @@index([reporterId])
+  @@index([reportedId])
+  @@index([createdAt])
+}
