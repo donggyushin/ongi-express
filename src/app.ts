@@ -7,7 +7,7 @@ import { createServer } from 'http';
 
 import { Container } from '@/shared/utils';
 import { ErrorMiddleware } from '@/presentation/middlewares';
-import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes, ChatRoutes } from '@/presentation/routes';
+import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes, ChatRoutes, ReportRoutes } from '@/presentation/routes';
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
 import { NotificationRoutes } from '@/presentation/routes/NotificationRoutes';
 import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
@@ -44,6 +44,7 @@ class App {
     const qnaExamplesRoutes = this.container.get<QnAExamplesRoutes>('qnaExamplesRoutes');
     const profileConnectionRoutes = this.container.get<ProfileConnectionRoutes>('profileConnectionRoutes');
     const chatRoutes = this.container.get<ChatRoutes>('chatRoutes');
+    const reportRoutes = this.container.get<ReportRoutes>('reportRoutes');
     const notificationRoutes = this.container.get<NotificationRoutes>('notificationRoutes');
 
     this.app.use('/', welcomeRoutes.getRouter());
@@ -55,6 +56,7 @@ class App {
     this.app.use('/qna', qnaExamplesRoutes.getRouter());
     this.app.use('/profile-connections', profileConnectionRoutes.getRouter());
     this.app.use('/chats', chatRoutes.getRouter());
+    this.app.use('/reports', reportRoutes.getRouter());
     this.app.use('/notifications', notificationRoutes.getRouter());
   }
 

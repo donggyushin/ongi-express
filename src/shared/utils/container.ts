@@ -1,20 +1,20 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase, GetChatByIdUseCase, IGetChatByIdUseCase, CreateReportUseCase, ICreateReportUseCase, GetMyReportsUseCase, IGetMyReportsUseCase, GetReportsAgainstMeUseCase, IGetReportsAgainstMeUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
 import { NotificationUseCase, INotificationUseCase } from '@/domain/use-cases/notification.use-case';
-import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository, IMessageRepository } from '@/domain/repositories';
+import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository, IMessageRepository, IReportRepository } from '@/domain/repositories';
 import { IFirebaseService } from '@/domain/services/IFirebaseService';
 import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
-import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService, RealtimeChatService } from '@/infrastructure/services';
+import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService, RealtimeChatService, PrismaReportService } from '@/infrastructure/services';
 import { FirebaseService } from '@/infrastructure/services/FirebaseService';
 import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma-email-verification.service';
 import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
 import { GmailService } from '@/infrastructure/services/gmail.service';
 import { IDatabaseService } from '@/shared/types';
-import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController, QnAExamplesController, ProfileConnectionController, ChatController } from '@/presentation/controllers';
+import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController, QnAExamplesController, ProfileConnectionController, ChatController, ReportController } from '@/presentation/controllers';
 import { EmailVerificationController } from '@/presentation/controllers/email-verification.controller';
 import { NotificationController } from '@/presentation/controllers/NotificationController';
 import { ErrorMiddleware } from '@/presentation/middlewares';
-import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes, ChatRoutes } from '@/presentation/routes';
+import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes, ChatRoutes, ReportRoutes } from '@/presentation/routes';
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
 import { NotificationRoutes } from '@/presentation/routes/NotificationRoutes';
 
@@ -45,6 +45,7 @@ export class Container {
     this.services.set('chatRepository', new PrismaChatService(this.get('prisma')));
     this.services.set('messageRepository', new PrismaMessageService(this.get('prisma')));
     this.services.set('emailVerificationRepository', new PrismaEmailVerificationService(this.get('prisma')));
+    this.services.set('reportRepository', new PrismaReportService(this.get('prisma')));
     this.services.set('imageRepository', new CloudinaryService(this.get<ILoggerService>('logger')));
     this.services.set('emailService', new GmailService());
     this.services.set('systemRepository', new SystemService());
@@ -76,7 +77,8 @@ export class Container {
     this.services.set('profileConnectionUseCase', new ProfileConnectionUseCase(
       this.get<IProfileConnectionRepository>('profileConnectionRepository'),
       this.get<IProfileRepository>('profileRepository'),
-      this.get<IFirebaseService>('firebaseService')
+      this.get<IFirebaseService>('firebaseService'),
+      this.get<IReportRepository>('reportRepository')
     ));
     this.services.set('createOrFindChatUseCase', new CreateOrFindChatUseCase(
       this.get<IChatRepository>('chatRepository'),
@@ -97,6 +99,18 @@ export class Container {
     ));
     this.services.set('getChatByIdUseCase', new GetChatByIdUseCase(
       this.get<IChatRepository>('chatRepository')
+    ));
+    this.services.set('createReportUseCase', new CreateReportUseCase(
+      this.get<IReportRepository>('reportRepository'),
+      this.get<IProfileRepository>('profileRepository')
+    ));
+    this.services.set('getMyReportsUseCase', new GetMyReportsUseCase(
+      this.get<IReportRepository>('reportRepository'),
+      this.get<IProfileRepository>('profileRepository')
+    ));
+    this.services.set('getReportsAgainstMeUseCase', new GetReportsAgainstMeUseCase(
+      this.get<IReportRepository>('reportRepository'),
+      this.get<IProfileRepository>('profileRepository')
     ));
     this.services.set('notificationUseCase', new NotificationUseCase(this.get<IFirebaseService>('firebaseService')));
 
@@ -123,6 +137,11 @@ export class Container {
       this.get<IGetChatByIdUseCase>('getChatByIdUseCase'),
       this.get<IRealtimeChatService>('realtimeChatService')
     ));
+    this.services.set('reportController', new ReportController(
+      this.get<ICreateReportUseCase>('createReportUseCase'),
+      this.get<IGetMyReportsUseCase>('getMyReportsUseCase'),
+      this.get<IGetReportsAgainstMeUseCase>('getReportsAgainstMeUseCase')
+    ));
     this.services.set('notificationController', new NotificationController(this.get<INotificationUseCase>('notificationUseCase')));
 
     // Middlewares
@@ -138,6 +157,7 @@ export class Container {
     this.services.set('qnaExamplesRoutes', new QnAExamplesRoutes(this.get<QnAExamplesController>('qnaExamplesController')));
     this.services.set('profileConnectionRoutes', new ProfileConnectionRoutes(this.get<ProfileConnectionController>('profileConnectionController')));
     this.services.set('chatRoutes', new ChatRoutes(this.get<ChatController>('chatController')));
+    this.services.set('reportRoutes', new ReportRoutes(this.get<ReportController>('reportController')));
     this.services.set('notificationRoutes', new NotificationRoutes(
       this.get<NotificationController>('notificationController'),
       this.get<IFirebaseService>('firebaseService')

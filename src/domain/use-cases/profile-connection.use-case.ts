@@ -102,13 +102,15 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     );
 
     // Combine profiles with report status
-    const profilesWithReportStatus = result.profiles.map(profile => ({
-      ...profile,
-      reportStatus: reportStatuses[profile.id] || {
-        iReported: false,
-        theyReported: false
-      }
-    }));
+    const profilesWithReportStatus = result.profiles.map(profile => {
+      const profileWithReportStatus = Object.assign(profile, {
+        reportStatus: reportStatuses[profile.id] || {
+          iReported: false,
+          theyReported: false
+        }
+      });
+      return profileWithReportStatus;
+    });
 
     return {
       profiles: profilesWithReportStatus,
