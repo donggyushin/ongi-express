@@ -213,9 +213,9 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
         data: {
           likerProfileId: likerProfile.id,
           likerNickname: likerProfile.nickname,
-          type: 'like',
-          urlScheme: 'ongi://profiles/like'
-        }
+          type: 'like'
+        },
+        urlScheme: 'ongi://profiles/like'
       });
     } catch (error) {
       console.error('Failed to create notification for like:', error);

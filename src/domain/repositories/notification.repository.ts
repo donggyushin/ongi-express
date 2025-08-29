@@ -8,6 +8,7 @@ export interface INotificationRepository {
     message: string;
     isRead: boolean;
     data?: any;
+    urlScheme?: string;
   }): Promise<Notification>;
   findById(id: string): Promise<Notification | null>;
   findByRecipientId(recipientId: string, limit?: number, offset?: number): Promise<Notification[]>;

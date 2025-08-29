@@ -12,6 +12,7 @@ export class PrismaNotificationService implements INotificationRepository {
     message: string;
     isRead: boolean;
     data?: any;
+    urlScheme?: string;
   }): Promise<Notification> {
     const createdNotification = await this.prisma.notification.create({
       data: {
@@ -20,7 +21,8 @@ export class PrismaNotificationService implements INotificationRepository {
         title: notification.title,
         message: notification.message,
         isRead: notification.isRead,
-        data: notification.data
+        data: notification.data,
+        urlScheme: notification.urlScheme
       }
     });
 
@@ -133,6 +135,7 @@ export class PrismaNotificationService implements INotificationRepository {
       prismaNotification.message,
       prismaNotification.isRead,
       prismaNotification.data,
+      prismaNotification.urlScheme,
       prismaNotification.createdAt,
       prismaNotification.updatedAt
     );

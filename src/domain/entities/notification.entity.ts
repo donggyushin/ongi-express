@@ -14,6 +14,7 @@ export class Notification {
     public readonly message: string,
     public readonly isRead: boolean = false,
     public readonly data: any = null,
+    public readonly urlScheme?: string,
     public readonly createdAt: Date = new Date(),
     public readonly updatedAt: Date = new Date()
   ) {}
@@ -27,6 +28,7 @@ export class Notification {
       this.message,
       true,
       this.data,
+      this.urlScheme,
       this.createdAt,
       new Date()
     );
@@ -41,6 +43,7 @@ export class Notification {
       message: this.message,
       isRead: this.isRead,
       data: this.data,
+      urlScheme: this.urlScheme,
       createdAt: this.createdAt.toISOString(),
       updatedAt: this.updatedAt.toISOString()
     };

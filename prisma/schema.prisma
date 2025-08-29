@@ -236,6 +236,7 @@ model Notification {
   message     String           @db.VarChar(500)
   isRead      Boolean          @default(false) @map("is_read")
   data        Json?
+  urlScheme   String?          @map("url_scheme") @db.VarChar(255)
   createdAt   DateTime         @default(now()) @map("created_at")
   updatedAt   DateTime         @updatedAt @map("updated_at")
 
