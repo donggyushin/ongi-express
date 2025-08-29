@@ -23,14 +23,44 @@ export class FirebaseService implements IFirebaseService {
 
         if (projectId && privateKey && clientEmail) {
           // Use environment variables
-          admin.initializeApp({
-            credential: admin.credential.cert({
-              projectId,
-              privateKey: privateKey.replace(/\\n/g, '\n'),
-              clientEmail,
-            }),
+          let processedPrivateKey = privateKey;
+          
+          // Handle different private key formats
+          if (privateKey.includes('\\n')) {
+            // If key has escaped newlines, convert them to actual newlines
+            processedPrivateKey = privateKey.replace(/\\n/g, '\n');
+          }
+          
+          // Ensure proper formatting
+          if (!processedPrivateKey.startsWith('-----BEGIN PRIVATE KEY-----')) {
+            throw new Error('Invalid private key format: must start with -----BEGIN PRIVATE KEY-----');
+          }
+          
+          this.loggerService.info('Initializing Firebase with environment variables', {
             projectId,
+            clientEmail,
+            privateKeyLength: processedPrivateKey.length,
+            privateKeyFormat: processedPrivateKey.substring(0, 50) + '...'
           });
+          
+          try {
+            // Test if the private key is properly formatted JSON-compatible
+            const serviceAccount = {
+              projectId,
+              privateKey: processedPrivateKey,
+              clientEmail,
+            };
+            
+            admin.initializeApp({
+              credential: admin.credential.cert(serviceAccount),
+              projectId,
+            });
+            
+            this.loggerService.info('Firebase credential created successfully');
+          } catch (credentialError) {
+            this.loggerService.error('Failed to create Firebase credentials', credentialError as Error);
+            throw credentialError;
+          }
         } else {
           // Fallback to application default credentials
           this.loggerService.warn('Firebase environment variables not found, trying application default credentials');
@@ -88,10 +118,25 @@ export class FirebaseService implements IFirebaseService {
       const response = await admin.messaging().send(message);
       this.loggerService.info('Successfully sent message to device', { 
         messageId: response, 
-        token: token.substring(0, 10) + '...' 
+        token: token.substring(0, 10) + '...',
+        title,
+        body
       });
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       this.loggerService.error('Failed to send message to device', error as Error);
+      this.loggerService.info('Error details', { 
+        errorMessage,
+        token: token.substring(0, 10) + '...',
+        title,
+        body
+      });
+      
+      // Check for specific Firebase errors
+      if (errorMessage.includes('invalid_grant')) {
+        this.loggerService.error('Firebase authentication failed - service account key may be invalid or expired');
+      }
+      
       throw new Error('Failed to send push notification');
     }
   }

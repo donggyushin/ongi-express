@@ -222,7 +222,6 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
 
     // 7. Push notification 전송 (FCM 토큰이 있는 경우)
     if (likedProfile.fcmToken) {
-      console.log("fcm token 있음")
       try {
         await this.firebaseService.sendToDevice(
           likedProfile.fcmToken,
