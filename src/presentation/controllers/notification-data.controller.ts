@@ -2,9 +2,14 @@ import { Request, Response } from 'express';
 import { INotificationDataUseCase, ICreateNotificationRequest, IGetNotificationsRequest } from '@/domain/use-cases/notification-data.use-case';
 import { NotificationType } from '@/domain/entities';
 import { ApiResponse } from '@/shared/types';
+import { AuthenticatedRequest } from '@/presentation/middlewares';
+import { IProfileRepository } from '@/domain/repositories';
 
 export class NotificationDataController {
-  constructor(private readonly notificationDataUseCase: INotificationDataUseCase) {}
+  constructor(
+    private readonly notificationDataUseCase: INotificationDataUseCase,
+    private readonly profileRepository: IProfileRepository
+  ) {}
 
   /**
    * Create a new notification
@@ -60,17 +65,37 @@ export class NotificationDataController {
   };
 
   /**
-   * Get notifications for a user
-   * GET /notifications/:recipientId
+   * Get notifications for authenticated user
+   * GET /notifications
    */
-  getNotifications = async (req: Request, res: Response): Promise<void> => {
+  getNotifications = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const { recipientId } = req.params;
+      const accountId = req.userId;
       const limit = parseInt(req.query.limit as string) || 50;
       const offset = parseInt(req.query.offset as string) || 0;
 
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'User authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      // Get profile by accountId to get profileId (recipientId)
+      const profile = await this.profileRepository.findByAccountId(accountId);
+      if (!profile) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
       const notifications = await this.notificationDataUseCase.getNotifications({
-        recipientId,
+        recipientId: profile.id,
         limit,
         offset
       });
@@ -92,14 +117,34 @@ export class NotificationDataController {
   };
 
   /**
-   * Get unread notifications for a user
-   * GET /notifications/:recipientId/unread
+   * Get unread notifications for authenticated user
+   * GET /notifications/unread
    */
-  getUnreadNotifications = async (req: Request, res: Response): Promise<void> => {
+  getUnreadNotifications = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const { recipientId } = req.params;
+      const accountId = req.userId;
 
-      const notifications = await this.notificationDataUseCase.getUnreadNotifications(recipientId);
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'User authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      // Get profile by accountId to get profileId (recipientId)
+      const profile = await this.profileRepository.findByAccountId(accountId);
+      if (!profile) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      const notifications = await this.notificationDataUseCase.getUnreadNotifications(profile.id);
 
       const response: ApiResponse<any[]> = {
         success: true,
@@ -118,14 +163,34 @@ export class NotificationDataController {
   };
 
   /**
-   * Get unread notification count for a user
-   * GET /notifications/:recipientId/unread/count
+   * Get unread notification count for authenticated user
+   * GET /notifications/unread/count
    */
-  getUnreadCount = async (req: Request, res: Response): Promise<void> => {
+  getUnreadCount = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const { recipientId } = req.params;
+      const accountId = req.userId;
 
-      const count = await this.notificationDataUseCase.getUnreadCount(recipientId);
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'User authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      // Get profile by accountId to get profileId (recipientId)
+      const profile = await this.profileRepository.findByAccountId(accountId);
+      if (!profile) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      const count = await this.notificationDataUseCase.getUnreadCount(profile.id);
 
       const response: ApiResponse<{ count: number }> = {
         success: true,
@@ -171,14 +236,34 @@ export class NotificationDataController {
   };
 
   /**
-   * Mark all notifications as read for a user
-   * PATCH /notifications/:recipientId/read-all
+   * Mark all notifications as read for authenticated user
+   * PATCH /notifications/read-all
    */
-  markAllAsRead = async (req: Request, res: Response): Promise<void> => {
+  markAllAsRead = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const { recipientId } = req.params;
+      const accountId = req.userId;
 
-      await this.notificationDataUseCase.markAllAsRead(recipientId);
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'User authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      // Get profile by accountId to get profileId (recipientId)
+      const profile = await this.profileRepository.findByAccountId(accountId);
+      if (!profile) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      await this.notificationDataUseCase.markAllAsRead(profile.id);
 
       const response: ApiResponse<null> = {
         success: true,
@@ -223,12 +308,22 @@ export class NotificationDataController {
   };
 
   /**
-   * Get notifications by type for a user
-   * GET /notifications/:recipientId/type/:type
+   * Get notifications by type for authenticated user
+   * GET /notifications/type/:type
    */
-  getNotificationsByType = async (req: Request, res: Response): Promise<void> => {
+  getNotificationsByType = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
     try {
-      const { recipientId, type } = req.params;
+      const accountId = req.userId;
+      const { type } = req.params;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'User authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
 
       if (!Object.values(NotificationType).includes(type as NotificationType)) {
         const response: ApiResponse<null> = {
@@ -240,8 +335,19 @@ export class NotificationDataController {
         return;
       }
 
+      // Get profile by accountId to get profileId (recipientId)
+      const profile = await this.profileRepository.findByAccountId(accountId);
+      if (!profile) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
       const notifications = await this.notificationDataUseCase.getNotificationsByType(
-        recipientId,
+        profile.id,
         type as NotificationType
       );
 

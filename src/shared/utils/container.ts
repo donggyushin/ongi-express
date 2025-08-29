@@ -80,7 +80,8 @@ export class Container {
       this.get<IProfileConnectionRepository>('profileConnectionRepository'),
       this.get<IProfileRepository>('profileRepository'),
       this.get<IFirebaseService>('firebaseService'),
-      this.get<IReportRepository>('reportRepository')
+      this.get<IReportRepository>('reportRepository'),
+      this.get<INotificationRepository>('notificationRepository')
     ));
     this.services.set('createOrFindChatUseCase', new CreateOrFindChatUseCase(
       this.get<IChatRepository>('chatRepository'),
@@ -146,7 +147,10 @@ export class Container {
       this.get<IGetReportsAgainstMeUseCase>('getReportsAgainstMeUseCase')
     ));
     this.services.set('notificationController', new NotificationController(this.get<INotificationUseCase>('notificationUseCase')));
-    this.services.set('notificationDataController', new NotificationDataController(this.get<INotificationDataUseCase>('notificationDataUseCase')));
+    this.services.set('notificationDataController', new NotificationDataController(
+      this.get<INotificationDataUseCase>('notificationDataUseCase'),
+      this.get<IProfileRepository>('profileRepository')
+    ));
 
     // Middlewares
     this.services.set('errorMiddleware', new ErrorMiddleware(this.get<ILoggerService>('logger')));

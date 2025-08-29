@@ -1,5 +1,5 @@
-import { ProfileConnection, Profile } from '@/domain/entities';
-import { IProfileConnectionRepository, IProfileRepository, IReportRepository } from '@/domain/repositories';
+import { ProfileConnection, Profile, NotificationType } from '@/domain/entities';
+import { IProfileConnectionRepository, IProfileRepository, IReportRepository, INotificationRepository } from '@/domain/repositories';
 import { IFirebaseService } from '@/domain/services/IFirebaseService';
 
 export interface IProfileConnectionUseCase {
@@ -27,7 +27,8 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     private profileConnectionRepository: IProfileConnectionRepository,
     private profileRepository: IProfileRepository,
     private firebaseService: IFirebaseService,
-    private reportRepository: IReportRepository
+    private reportRepository: IReportRepository,
+    private notificationRepository: INotificationRepository
   ) {}
 
   async addRandomConnection(profileId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }> {
@@ -194,7 +195,25 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     // 4. 좋아요 추가
     await this.profileConnectionRepository.addLike(likerProfile.id, likedProfileId);
 
-    // 5. Push notification 전송 (FCM 토큰이 있는 경우)
+    // 5. 좋아요 받은 사람에게 데이터베이스 알림 생성
+    try {
+      await this.notificationRepository.create({
+        recipientId: likedProfile.id,
+        type: NotificationType.NEW_CONNECTION,
+        title: '새로운 좋아요 💖',
+        message: `${likerProfile.nickname}님이 당신을 좋아합니다!`,
+        isRead: false,
+        data: {
+          likerProfileId: likerProfile.id,
+          likerNickname: likerProfile.nickname,
+          type: 'like'
+        }
+      });
+    } catch (error) {
+      console.error('Failed to create notification for like:', error);
+    }
+
+    // 6. Push notification 전송 (FCM 토큰이 있는 경우)
     if (likedProfile.fcmToken) {
       try {
         await this.firebaseService.sendToDevice(
