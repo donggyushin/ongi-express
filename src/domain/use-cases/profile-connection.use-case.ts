@@ -213,7 +213,8 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
         data: {
           likerProfileId: likerProfile.id,
           likerNickname: likerProfile.nickname,
-          type: 'like'
+          type: 'like',
+          urlScheme: 'ongi://profiles/like'
         }
       });
     } catch (error) {
@@ -229,7 +230,7 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
           `${likerProfile.nickname}님이 당신을 좋아합니다!`,
           {
             type: 'like',
-            url_scheme: 'ongi://profiles-like-me'
+            url_scheme: 'ongi://profiles/like'
           }
         );
       } catch (error) {
