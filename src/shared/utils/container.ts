@@ -1,20 +1,21 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase, GetChatByIdUseCase, IGetChatByIdUseCase, CreateReportUseCase, ICreateReportUseCase, GetMyReportsUseCase, IGetMyReportsUseCase, GetReportsAgainstMeUseCase, IGetReportsAgainstMeUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
 import { NotificationUseCase, INotificationUseCase } from '@/domain/use-cases/notification.use-case';
-import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository, IMessageRepository, IReportRepository } from '@/domain/repositories';
+import { NotificationDataUseCase, INotificationDataUseCase } from '@/domain/use-cases/notification-data.use-case';
+import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository, IMessageRepository, IReportRepository, INotificationRepository } from '@/domain/repositories';
 import { IFirebaseService } from '@/domain/services/IFirebaseService';
 import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
-import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService, RealtimeChatService, PrismaReportService } from '@/infrastructure/services';
+import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService, RealtimeChatService, PrismaReportService, PrismaNotificationService } from '@/infrastructure/services';
 import { FirebaseService } from '@/infrastructure/services/FirebaseService';
 import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma-email-verification.service';
 import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
 import { GmailService } from '@/infrastructure/services/gmail.service';
 import { IDatabaseService } from '@/shared/types';
-import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController, QnAExamplesController, ProfileConnectionController, ChatController, ReportController } from '@/presentation/controllers';
+import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController, QnAExamplesController, ProfileConnectionController, ChatController, ReportController, NotificationDataController } from '@/presentation/controllers';
 import { EmailVerificationController } from '@/presentation/controllers/email-verification.controller';
 import { NotificationController } from '@/presentation/controllers/NotificationController';
 import { ErrorMiddleware } from '@/presentation/middlewares';
-import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes, ChatRoutes, ReportRoutes } from '@/presentation/routes';
+import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes, ChatRoutes, ReportRoutes, NotificationDataRoutes } from '@/presentation/routes';
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
 import { NotificationRoutes } from '@/presentation/routes/NotificationRoutes';
 
@@ -46,6 +47,7 @@ export class Container {
     this.services.set('messageRepository', new PrismaMessageService(this.get('prisma')));
     this.services.set('emailVerificationRepository', new PrismaEmailVerificationService(this.get('prisma')));
     this.services.set('reportRepository', new PrismaReportService(this.get('prisma')));
+    this.services.set('notificationRepository', new PrismaNotificationService(this.get('prisma')));
     this.services.set('imageRepository', new CloudinaryService(this.get<ILoggerService>('logger')));
     this.services.set('emailService', new GmailService());
     this.services.set('systemRepository', new SystemService());
@@ -113,6 +115,7 @@ export class Container {
       this.get<IProfileRepository>('profileRepository')
     ));
     this.services.set('notificationUseCase', new NotificationUseCase(this.get<IFirebaseService>('firebaseService')));
+    this.services.set('notificationDataUseCase', new NotificationDataUseCase(this.get<INotificationRepository>('notificationRepository')));
 
     // Controllers
     this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));
@@ -143,6 +146,7 @@ export class Container {
       this.get<IGetReportsAgainstMeUseCase>('getReportsAgainstMeUseCase')
     ));
     this.services.set('notificationController', new NotificationController(this.get<INotificationUseCase>('notificationUseCase')));
+    this.services.set('notificationDataController', new NotificationDataController(this.get<INotificationDataUseCase>('notificationDataUseCase')));
 
     // Middlewares
     this.services.set('errorMiddleware', new ErrorMiddleware(this.get<ILoggerService>('logger')));
@@ -162,6 +166,7 @@ export class Container {
       this.get<NotificationController>('notificationController'),
       this.get<IFirebaseService>('firebaseService')
     ));
+    this.services.set('notificationDataRoutes', new NotificationDataRoutes(this.get<NotificationDataController>('notificationDataController')));
   }
 
   get<T>(serviceName: string): T {

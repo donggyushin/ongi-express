@@ -7,3 +7,5 @@ export * from './qna-examples.controller';
 export * from './profile-connection.controller';
 export * from './chat.controller';
 export * from './report.controller';
+export * from './NotificationController';
+export * from './notification-data.controller';

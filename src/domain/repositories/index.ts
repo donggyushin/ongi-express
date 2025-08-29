@@ -8,3 +8,4 @@ export * from './profile-connection.repository';
 export * from './chat.repository';
 export * from './message.repository';
 export * from './report.repository';
+export * from './notification.repository';

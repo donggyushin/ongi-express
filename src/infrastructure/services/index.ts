@@ -11,3 +11,4 @@ export * from './prisma-chat.service';
 export * from './prisma-message.service';
 export * from './realtime-chat.service';
 export * from './prisma-report.service';
+export * from './prisma-notification.service';

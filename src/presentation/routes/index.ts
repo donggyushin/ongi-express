@@ -7,3 +7,5 @@ export * from './qna-examples.routes';
 export * from './profile-connection.routes';
 export * from './chat.routes';
 export * from './report.routes';
+export * from './NotificationRoutes';
+export * from './notification-data.routes';
