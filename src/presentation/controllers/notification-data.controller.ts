@@ -100,9 +100,31 @@ export class NotificationDataController {
         offset
       });
 
+      // Enrich notifications with profile data when likerProfileId exists
+      const enrichedNotifications = await Promise.all(
+        notifications.map(async (notification) => {
+          const notificationData = notification.toJSON();
+          
+          // If notification has likerProfileId in data, fetch the profile
+          if (notificationData.data?.likerProfileId) {
+            try {
+              const likerProfile = await this.profileRepository.findById(notificationData.data.likerProfileId);
+              if (likerProfile) {
+                notificationData.data.likerProfile = likerProfile.toJSON();
+              }
+            } catch (error) {
+              console.error('Failed to fetch liker profile:', error);
+              // Continue without the profile data if fetch fails
+            }
+          }
+          
+          return notificationData;
+        })
+      );
+
       const response: ApiResponse<any[]> = {
         success: true,
-        data: notifications.map(notification => notification.toJSON())
+        data: enrichedNotifications
       };
 
       res.status(200).json(response);
@@ -146,9 +168,31 @@ export class NotificationDataController {
 
       const notifications = await this.notificationDataUseCase.getUnreadNotifications(profile.id);
 
+      // Enrich notifications with profile data when likerProfileId exists
+      const enrichedNotifications = await Promise.all(
+        notifications.map(async (notification) => {
+          const notificationData = notification.toJSON();
+          
+          // If notification has likerProfileId in data, fetch the profile
+          if (notificationData.data?.likerProfileId) {
+            try {
+              const likerProfile = await this.profileRepository.findById(notificationData.data.likerProfileId);
+              if (likerProfile) {
+                notificationData.data.likerProfile = likerProfile.toJSON();
+              }
+            } catch (error) {
+              console.error('Failed to fetch liker profile:', error);
+              // Continue without the profile data if fetch fails
+            }
+          }
+          
+          return notificationData;
+        })
+      );
+
       const response: ApiResponse<any[]> = {
         success: true,
-        data: notifications.map(notification => notification.toJSON())
+        data: enrichedNotifications
       };
 
       res.status(200).json(response);
@@ -351,9 +395,31 @@ export class NotificationDataController {
         type as NotificationType
       );
 
+      // Enrich notifications with profile data when likerProfileId exists
+      const enrichedNotifications = await Promise.all(
+        notifications.map(async (notification) => {
+          const notificationData = notification.toJSON();
+          
+          // If notification has likerProfileId in data, fetch the profile
+          if (notificationData.data?.likerProfileId) {
+            try {
+              const likerProfile = await this.profileRepository.findById(notificationData.data.likerProfileId);
+              if (likerProfile) {
+                notificationData.data.likerProfile = likerProfile.toJSON();
+              }
+            } catch (error) {
+              console.error('Failed to fetch liker profile:', error);
+              // Continue without the profile data if fetch fails
+            }
+          }
+          
+          return notificationData;
+        })
+      );
+
       const response: ApiResponse<any[]> = {
         success: true,
-        data: notifications.map(notification => notification.toJSON())
+        data: enrichedNotifications
       };
 
       res.status(200).json(response);
