@@ -192,10 +192,17 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
       throw new Error('Cannot like your own profile');
     }
 
-    // 4. 좋아요 추가
-    await this.profileConnectionRepository.addLike(likerProfile.id, likedProfileId);
+    // 4. 중복 좋아요 체크 - 이미 좋아요했는지 확인
+    const likerConnection = await this.profileConnectionRepository.findByProfileId(likerProfile.id);
+    if (likerConnection && likerConnection.profileIDsILike.includes(likedProfileId)) {
+      // 이미 좋아요한 경우 - 아무 작업도 하지 않고 조용히 성공 처리
+      return;
+    }
 
-    // 5. 좋아요 받은 사람에게 데이터베이스 알림 생성
+    // 5. 좋아요 추가
+    await this.profileConnectionRepository.addLike(likerProfile.id, likedProfileId);
+    
+    // 6. 좋아요 받은 사람에게 데이터베이스 알림 생성
     try {
       await this.notificationRepository.create({
         recipientId: likedProfile.id,
@@ -213,8 +220,9 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
       console.error('Failed to create notification for like:', error);
     }
 
-    // 6. Push notification 전송 (FCM 토큰이 있는 경우)
+    // 7. Push notification 전송 (FCM 토큰이 있는 경우)
     if (likedProfile.fcmToken) {
+      console.log("fcm token 있음")
       try {
         await this.firebaseService.sendToDevice(
           likedProfile.fcmToken,

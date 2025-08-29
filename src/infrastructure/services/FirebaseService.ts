@@ -4,6 +4,7 @@ import { ILoggerService } from './logger.service';
 
 export class FirebaseService implements IFirebaseService {
   private initialized = false;
+  private firebaseAvailable = false;
 
   constructor(private readonly loggerService: ILoggerService) {}
 
@@ -14,20 +15,40 @@ export class FirebaseService implements IFirebaseService {
 
     try {
       // Firebase Admin SDK initialization
-      // You can either use service account key file or environment variables
       if (!admin.apps.length) {
-        admin.initializeApp({
-          credential: admin.credential.applicationDefault(),
-          // Or use service account key:
-          // credential: admin.credential.cert(serviceAccount),
-        });
+        // Check if Firebase environment variables are available
+        const projectId = process.env.FIREBASE_PROJECT_ID;
+        const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+        const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+
+        if (projectId && privateKey && clientEmail) {
+          // Use environment variables
+          admin.initializeApp({
+            credential: admin.credential.cert({
+              projectId,
+              privateKey: privateKey.replace(/\\n/g, '\n'),
+              clientEmail,
+            }),
+            projectId,
+          });
+        } else {
+          // Fallback to application default credentials
+          this.loggerService.warn('Firebase environment variables not found, trying application default credentials');
+          admin.initializeApp({
+            credential: admin.credential.applicationDefault(),
+          });
+        }
       }
 
       this.initialized = true;
+      this.firebaseAvailable = true;
       this.loggerService.info('Firebase Admin SDK initialized successfully');
     } catch (error) {
       this.loggerService.error('Failed to initialize Firebase Admin SDK', error as Error);
-      throw new Error('Firebase initialization failed');
+      // Don't throw error - let the service continue without Firebase
+      this.initialized = true;
+      this.firebaseAvailable = false;
+      this.loggerService.warn('Firebase will be disabled for this session');
     }
   }
 
@@ -45,6 +66,15 @@ export class FirebaseService implements IFirebaseService {
   async sendToDevice(token: string, title: string, body: string, data?: Record<string, string>): Promise<void> {
     try {
       await this.ensureInitialized();
+      
+      if (!this.firebaseAvailable) {
+        this.loggerService.warn('Firebase not available, skipping push notification', {
+          title,
+          body,
+          token: token.substring(0, 10) + '...'
+        });
+        return; // Silently skip if Firebase is not available
+      }
       
       const message = {
         notification: {
@@ -69,6 +99,15 @@ export class FirebaseService implements IFirebaseService {
   async sendToMultipleDevices(tokens: string[], title: string, body: string, data?: Record<string, string>): Promise<void> {
     try {
       await this.ensureInitialized();
+
+      if (!this.firebaseAvailable) {
+        this.loggerService.warn('Firebase not available, skipping multicast push notification', {
+          title,
+          body,
+          tokenCount: tokens.length
+        });
+        return; // Silently skip if Firebase is not available
+      }
 
       const message = {
         notification: {
@@ -105,6 +144,15 @@ export class FirebaseService implements IFirebaseService {
   async sendToTopic(topic: string, title: string, body: string, data?: Record<string, string>): Promise<void> {
     try {
       await this.ensureInitialized();
+
+      if (!this.firebaseAvailable) {
+        this.loggerService.warn('Firebase not available, skipping topic push notification', {
+          title,
+          body,
+          topic
+        });
+        return; // Silently skip if Firebase is not available
+      }
 
       const message = {
         notification: {

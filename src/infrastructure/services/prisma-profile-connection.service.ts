@@ -240,35 +240,51 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
 
   async addLike(likerProfileId: string, likedProfileId: string): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
-      // 1. 좋아요 하는 사람의 ProfileConnection 생성/업데이트
+      // 1. 좋아요 하는 사람의 ProfileConnection 조회 또는 생성
       const likerConnection = await tx.profileConnection.upsert({
         where: { myProfileId: likerProfileId },
         create: {
           myProfileId: likerProfileId,
-          profileIDsILike: [likedProfileId],
+          profileIDsILike: [],
           profileIDsLikeMe: []
         },
-        update: {
-          profileIDsILike: {
-            push: likedProfileId
-          }
-        }
+        update: {}
       });
 
-      // 2. 좋아요 받는 사람의 ProfileConnection 생성/업데이트
-      await tx.profileConnection.upsert({
+      // 중복 체크: 이미 좋아요한 경우 추가하지 않음
+      if (!likerConnection.profileIDsILike.includes(likedProfileId)) {
+        await tx.profileConnection.update({
+          where: { myProfileId: likerProfileId },
+          data: {
+            profileIDsILike: {
+              push: likedProfileId
+            }
+          }
+        });
+      }
+
+      // 2. 좋아요 받는 사람의 ProfileConnection 조회 또는 생성
+      const likedConnection = await tx.profileConnection.upsert({
         where: { myProfileId: likedProfileId },
         create: {
           myProfileId: likedProfileId,
           profileIDsILike: [],
-          profileIDsLikeMe: [likerProfileId]
+          profileIDsLikeMe: []
         },
-        update: {
-          profileIDsLikeMe: {
-            push: likerProfileId
-          }
-        }
+        update: {}
       });
+
+      // 중복 체크: 이미 받은 좋아요인 경우 추가하지 않음
+      if (!likedConnection.profileIDsLikeMe.includes(likerProfileId)) {
+        await tx.profileConnection.update({
+          where: { myProfileId: likedProfileId },
+          data: {
+            profileIDsLikeMe: {
+              push: likerProfileId
+            }
+          }
+        });
+      }
     });
   }
 

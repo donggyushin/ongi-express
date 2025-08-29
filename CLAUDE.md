@@ -74,6 +74,12 @@ All API responses follow the `ApiResponse<T>` interface:
 }
 ```
 
+**Authentication & Authorization**
+- JWT-based authentication with access and refresh tokens
+- `AuthMiddleware` handles token verification and user identification
+- Protected routes require `Authorization: Bearer <token>` header
+- Authenticated requests have `req.userId` containing the account ID
+
 **Error Handling**
 - Global error middleware in `ErrorMiddleware`
 - Production vs development error messages
@@ -100,6 +106,69 @@ All API responses follow the `ApiResponse<T>` interface:
 4. **Build Presentation**: Create controller, routes, and any required middlewares
 5. **Register in Container**: Add all new services to the DI container
 6. **Wire in App**: Register routes in `App.initializeRoutes()`
+
+### Authentication Implementation
+
+**Using AuthMiddleware in Controllers**
+```typescript
+import { AuthenticatedRequest } from '@/presentation/middlewares';
+
+export class MyController {
+  constructor(private profileRepository: IProfileRepository) {}
+
+  // Protected endpoint - requires authentication
+  myProtectedEndpoint = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId; // Account ID from JWT token
+      
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'User authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      // Convert account ID to profile for business logic
+      const profile = await this.profileRepository.findByAccountId(accountId);
+      if (!profile) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      // Use profile.id for business operations
+      const result = await this.someUseCase.execute(profile.id);
+      
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      // Error handling...
+    }
+  };
+}
+```
+
+**Protecting Routes with AuthMiddleware**
+```typescript
+// In route definitions
+this.router.get('/protected-endpoint', 
+  AuthMiddleware.verifyToken,  // Middleware validates JWT and sets req.userId
+  this.myController.myProtectedEndpoint
+);
+
+// Optional authentication (user may or may not be logged in)
+this.router.get('/optional-auth-endpoint',
+  AuthMiddleware.optionalVerifyToken,  // Sets req.userId only if valid token provided
+  this.myController.myOptionalEndpoint
+);
+```
 
 ### Database Usage
 
@@ -202,6 +271,12 @@ This application is deployed on Railway with the following setup:
 - Automatically creates associated Profile with default nickname (random CUID)
 - Returns existing account if duplicate creation attempted
 - Validates account type enum and required fields
+
+**Authentication Patterns**
+- Use `AuthenticatedRequest` interface for protected routes
+- Access user info via `req.userId` (contains account ID)
+- Convert account ID to profile ID using `IProfileRepository.findByAccountId()`
+- Prefer accessToken-based identification over URL parameters for security
 
 **Endpoint Patterns**
 - All responses follow `ApiResponse<T>` interface
