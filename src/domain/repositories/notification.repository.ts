@@ -11,6 +11,7 @@ export interface INotificationRepository {
   }): Promise<Notification>;
   findById(id: string): Promise<Notification | null>;
   findByRecipientId(recipientId: string, limit?: number, offset?: number): Promise<Notification[]>;
+  findByRecipientIdWithCursor(recipientId: string, limit?: number, cursorId?: string): Promise<Notification[]>;
   findUnreadByRecipientId(recipientId: string): Promise<Notification[]>;
   countUnreadByRecipientId(recipientId: string): Promise<number>;
   markAsRead(id: string): Promise<Notification>;

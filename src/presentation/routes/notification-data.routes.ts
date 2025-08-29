@@ -14,7 +14,8 @@ export class NotificationDataRoutes {
     // POST /notifications - Create a new notification (admin/system use)
     this.router.post('/', this.notificationDataController.createNotification);
 
-    // GET /notifications - Get notifications for authenticated user
+    // GET /notifications - Get notifications for authenticated user (with cursor-based pagination)
+    // Query parameters: limit (optional, default: 50), cursorId (optional, for pagination)
     this.router.get('/', AuthMiddleware.verifyToken, this.notificationDataController.getNotifications);
 
     // GET /notifications/unread - Get unread notifications for authenticated user

@@ -15,9 +15,16 @@ export interface IGetNotificationsRequest {
   offset?: number;
 }
 
+export interface IGetNotificationsWithCursorRequest {
+  recipientId: string;
+  limit?: number;
+  cursorId?: string;
+}
+
 export interface INotificationDataUseCase {
   createNotification(request: ICreateNotificationRequest): Promise<Notification>;
   getNotifications(request: IGetNotificationsRequest): Promise<Notification[]>;
+  getNotificationsWithCursor(request: IGetNotificationsWithCursorRequest): Promise<Notification[]>;
   getUnreadNotifications(recipientId: string): Promise<Notification[]>;
   getUnreadCount(recipientId: string): Promise<number>;
   markAsRead(notificationId: string): Promise<Notification>;
@@ -47,6 +54,14 @@ export class NotificationDataUseCase implements INotificationDataUseCase {
       request.recipientId,
       request.limit,
       request.offset
+    );
+  }
+
+  async getNotificationsWithCursor(request: IGetNotificationsWithCursorRequest): Promise<Notification[]> {
+    return await this.notificationRepository.findByRecipientIdWithCursor(
+      request.recipientId,
+      request.limit,
+      request.cursorId
     );
   }
 

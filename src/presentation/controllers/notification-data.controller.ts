@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { INotificationDataUseCase, ICreateNotificationRequest, IGetNotificationsRequest } from '@/domain/use-cases/notification-data.use-case';
+import { INotificationDataUseCase, ICreateNotificationRequest, IGetNotificationsRequest, IGetNotificationsWithCursorRequest } from '@/domain/use-cases/notification-data.use-case';
 import { NotificationType } from '@/domain/entities';
 import { ApiResponse } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares';
@@ -72,7 +72,7 @@ export class NotificationDataController {
     try {
       const accountId = req.userId;
       const limit = parseInt(req.query.limit as string) || 50;
-      const offset = parseInt(req.query.offset as string) || 0;
+      const cursorId = req.query.cursorId as string;
 
       if (!accountId) {
         const response: ApiResponse<null> = {
@@ -94,10 +94,10 @@ export class NotificationDataController {
         return;
       }
 
-      const notifications = await this.notificationDataUseCase.getNotifications({
+      const notifications = await this.notificationDataUseCase.getNotificationsWithCursor({
         recipientId: profile.id,
         limit,
-        offset
+        cursorId
       });
 
       // Enrich notifications with profile data when likerProfileId exists
@@ -122,9 +122,18 @@ export class NotificationDataController {
         })
       );
 
-      const response: ApiResponse<any[]> = {
+      // Get the next cursor (ID of the last notification)
+      const nextCursor = enrichedNotifications.length > 0 
+        ? enrichedNotifications[enrichedNotifications.length - 1].id 
+        : null;
+
+      const response: ApiResponse<any> = {
         success: true,
-        data: enrichedNotifications
+        data: {
+          notifications: enrichedNotifications,
+          nextCursor,
+          hasMore: enrichedNotifications.length === limit
+        }
       };
 
       res.status(200).json(response);

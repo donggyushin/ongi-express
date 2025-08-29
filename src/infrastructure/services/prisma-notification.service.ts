@@ -46,6 +46,20 @@ export class PrismaNotificationService implements INotificationRepository {
     return notifications.map(notification => this.mapToNotificationEntity(notification));
   }
 
+  async findByRecipientIdWithCursor(recipientId: string, limit: number = 50, cursorId?: string): Promise<Notification[]> {
+    const notifications = await this.prisma.notification.findMany({
+      where: { recipientId },
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      ...(cursorId && {
+        cursor: { id: cursorId },
+        skip: 1
+      })
+    });
+
+    return notifications.map(notification => this.mapToNotificationEntity(notification));
+  }
+
   async findUnreadByRecipientId(recipientId: string): Promise<Notification[]> {
     const notifications = await this.prisma.notification.findMany({
       where: { 
