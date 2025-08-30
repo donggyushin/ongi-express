@@ -161,6 +161,7 @@ model Message {
   id              String   @id @default(cuid())
   writerProfileId String   @map("writer_profile_id")
   text            String
+  messageType     String?  @map("message_type")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
