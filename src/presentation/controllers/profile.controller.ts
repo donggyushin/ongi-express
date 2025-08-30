@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import multer from 'multer';
 import { IProfileUseCase } from '@/domain/use-cases';
 import { ApiResponse } from '@/shared/types/response';
-import { Profile } from '@/domain/entities';
+import { Profile, QnA } from '@/domain/entities';
 import { AuthenticatedRequest } from '../middlewares';
 
 // Configure multer for memory storage
@@ -720,6 +720,55 @@ export class ProfileController {
       const response: ApiResponse<null> = {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to update FCM token'
+      };
+      res.status(500).json(response);
+    }
+  };
+
+  public getSingleQna = async (req: AuthenticatedRequest, res: Response): Promise<void> => {
+    try {
+      const accountId = req.userId;
+      const { qnaId } = req.params;
+
+      if (!accountId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Authentication required'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      if (!qnaId) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Q&A ID is required'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const qna = await this.profileUseCase.getSingleQna(accountId, qnaId);
+
+      if (!qna) {
+        const response: ApiResponse<null> = {
+          success: false,
+          error: 'Q&A not found or access denied'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      const response: ApiResponse<QnA> = {
+        success: true,
+        data: qna
+      };
+
+      res.status(200).json(response);
+    } catch (error) {
+      const response: ApiResponse<null> = {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to get Q&A'
       };
       res.status(500).json(response);
     }

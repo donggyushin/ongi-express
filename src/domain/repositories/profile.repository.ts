@@ -17,6 +17,7 @@ export interface IProfileRepository {
   addQna(accountId: string, question: string, answer: string): Promise<Profile>;
   removeQna(accountId: string, qnaId: string): Promise<Profile>;
   updateQna(accountId: string, qnaId: string, answer: string): Promise<Profile>;
+  findQnaById(qnaId: string, accountId: string): Promise<QnA | null>;
   updateLastTokenAuth(accountId: string): Promise<void>;
   findRandomProfileByGender(excludeGender: string, excludeProfileIds: string[]): Promise<Profile | null>;
   findRandomCompleteProfileByGender(excludeGender: string, excludeProfileIds: string[]): Promise<Profile | null>;

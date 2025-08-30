@@ -513,6 +513,38 @@ export class PrismaProfileService implements IProfileRepository {
     return this.mapToProfileEntity(updatedProfile);
   }
 
+  async findQnaById(qnaId: string, accountId: string): Promise<QnA | null> {
+    // First, get the profile to verify ownership
+    const profile = await this.prisma.profile.findUnique({
+      where: { accountId },
+      select: { id: true }
+    });
+
+    if (!profile) {
+      return null;
+    }
+
+    // Find the Q&A that belongs to this profile
+    const qna = await this.prisma.qnA.findFirst({
+      where: {
+        id: qnaId,
+        profileId: profile.id
+      }
+    });
+
+    if (!qna) {
+      return null;
+    }
+
+    return new QnA(
+      qna.id,
+      qna.question,
+      qna.answer,
+      qna.createdAt,
+      qna.updatedAt
+    );
+  }
+
   private mapToProfileEntity(profile: any): Profile {
     return new Profile(
       profile.id,

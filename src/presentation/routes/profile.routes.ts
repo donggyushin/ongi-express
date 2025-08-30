@@ -49,6 +49,9 @@ export class ProfileRoutes {
     // POST /profiles/me/qna - Add Q&A to profile
     this.router.post('/me/qna', AuthMiddleware.verifyToken, this.profileController.addQna);
 
+    // GET /profiles/me/qna/:qnaId - Get single Q&A by ID
+    this.router.get('/me/qna/:qnaId', AuthMiddleware.verifyToken, this.profileController.getSingleQna);
+
     // POST /profiles/me/add-image - Add image to profile gallery
     this.router.post(
       '/me/add-image',

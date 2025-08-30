@@ -1,5 +1,5 @@
 import { IProfileRepository, IImageRepository, IProfileConnectionRepository } from '../repositories';
-import { Profile, Image } from '../entities';
+import { Profile, Image, QnA } from '../entities';
 import { validateKoreanNickname } from '@/shared/utils';
 
 export interface IProfileUseCase {
@@ -18,6 +18,7 @@ export interface IProfileUseCase {
   addQna(accountId: string, question: string, answer: string): Promise<Profile>;
   removeQna(accountId: string, qnaId: string): Promise<Profile>;
   updateQna(accountId: string, qnaId: string, answer: string): Promise<Profile>;
+  getSingleQna(accountId: string, qnaId: string): Promise<QnA | null>;
 }
 
 export class ProfileUseCase implements IProfileUseCase {
@@ -373,5 +374,23 @@ export class ProfileUseCase implements IProfileUseCase {
     const updatedProfile = await this.profileRepository.updateFcmToken(accountId, fcmToken.trim());
 
     return updatedProfile;
+  }
+
+  async getSingleQna(accountId: string, qnaId: string): Promise<QnA | null> {
+    // Validate input
+    if (!qnaId || qnaId.trim().length === 0) {
+      throw new Error('Q&A ID is required');
+    }
+
+    // Check if profile exists
+    const existingProfile = await this.profileRepository.findByAccountId(accountId);
+    if (!existingProfile) {
+      throw new Error('Profile not found');
+    }
+
+    // Get Q&A by ID and verify ownership
+    const qna = await this.profileRepository.findQnaById(qnaId, accountId);
+    
+    return qna;
   }
 }
