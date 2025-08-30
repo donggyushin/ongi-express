@@ -5,13 +5,14 @@ import { PrismaClient } from '../../generated/prisma';
 export class PrismaMessageService implements IMessageRepository {
   constructor(private prisma: PrismaClient) {}
 
-  async create(chatId: string, writerProfileId: string, text: string): Promise<Message> {
+  async create(chatId: string, writerProfileId: string, text: string, messageType?: string): Promise<Message> {
     try {
       const message = await this.prisma.message.create({
         data: {
           writerProfileId,
           text,
-          chatId
+          chatId,
+          messageType
         }
       });
 

@@ -258,7 +258,8 @@ export class GetChatByIdUseCase implements IGetChatByIdUseCase {
 
 export class LeaveChatUseCase implements ILeaveChatUseCase {
   constructor(
-    private chatRepository: IChatRepository
+    private chatRepository: IChatRepository,
+    private messageRepository: IMessageRepository
   ) {}
 
   async execute(chatId: string, profileId: string): Promise<Chat> {
@@ -268,6 +269,14 @@ export class LeaveChatUseCase implements ILeaveChatUseCase {
 
     if (!targetChat) {
       throw new Error('Chat not found or user not authorized to access this chat');
+    }
+
+    // Send LEAVE message before removing participant
+    try {
+      await this.messageRepository.create(chatId, profileId, '', 'LEAVE');
+    } catch (error) {
+      console.error('Failed to create LEAVE message:', error);
+      // Don't throw error - continue with leaving chat even if message creation fails
     }
 
     // Remove participant from the chat

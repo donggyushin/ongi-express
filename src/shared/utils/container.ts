@@ -104,7 +104,8 @@ export class Container {
       this.get<IChatRepository>('chatRepository')
     ));
     this.services.set('leaveChatUseCase', new LeaveChatUseCase(
-      this.get<IChatRepository>('chatRepository')
+      this.get<IChatRepository>('chatRepository'),
+      this.get<IMessageRepository>('messageRepository')
     ));
     this.services.set('createReportUseCase', new CreateReportUseCase(
       this.get<IReportRepository>('reportRepository'),
