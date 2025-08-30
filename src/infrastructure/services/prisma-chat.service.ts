@@ -87,6 +87,7 @@ export class PrismaChatService implements IChatRepository {
           message.id,
           message.writerProfileId,
           message.text,
+          message.messageType ?? undefined,
           message.createdAt,
           message.updatedAt
         )
@@ -244,6 +245,7 @@ export class PrismaChatService implements IChatRepository {
             message.id,
             message.writerProfileId,
             message.text,
+            message.messageType ?? undefined,
             message.createdAt,
             message.updatedAt
           )
@@ -365,6 +367,7 @@ export class PrismaChatService implements IChatRepository {
           message.id,
           message.writerProfileId,
           message.text,
+          message.messageType ?? undefined,
           message.createdAt,
           message.updatedAt
         )
@@ -553,6 +556,7 @@ export class PrismaChatService implements IChatRepository {
           message.id,
           message.writerProfileId,
           message.text,
+          message.messageType ?? undefined,
           message.createdAt,
           message.updatedAt
         )
@@ -710,6 +714,7 @@ export class PrismaChatService implements IChatRepository {
           message.id,
           message.writerProfileId,
           message.text,
+          message.messageType ?? undefined,
           message.createdAt,
           message.updatedAt
         )
