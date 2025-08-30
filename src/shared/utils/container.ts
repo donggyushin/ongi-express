@@ -1,4 +1,4 @@
-import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase, GetChatByIdUseCase, IGetChatByIdUseCase, CreateReportUseCase, ICreateReportUseCase, GetMyReportsUseCase, IGetMyReportsUseCase, GetReportsAgainstMeUseCase, IGetReportsAgainstMeUseCase } from '@/domain/use-cases';
+import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase, GetChatByIdUseCase, IGetChatByIdUseCase, LeaveChatUseCase, ILeaveChatUseCase, CreateReportUseCase, ICreateReportUseCase, GetMyReportsUseCase, IGetMyReportsUseCase, GetReportsAgainstMeUseCase, IGetReportsAgainstMeUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
 import { NotificationUseCase, INotificationUseCase } from '@/domain/use-cases/notification.use-case';
 import { NotificationDataUseCase, INotificationDataUseCase } from '@/domain/use-cases/notification-data.use-case';
@@ -103,6 +103,9 @@ export class Container {
     this.services.set('getChatByIdUseCase', new GetChatByIdUseCase(
       this.get<IChatRepository>('chatRepository')
     ));
+    this.services.set('leaveChatUseCase', new LeaveChatUseCase(
+      this.get<IChatRepository>('chatRepository')
+    ));
     this.services.set('createReportUseCase', new CreateReportUseCase(
       this.get<IReportRepository>('reportRepository'),
       this.get<IProfileRepository>('profileRepository')
@@ -139,6 +142,7 @@ export class Container {
       this.get<IUpdateMessageReadInfoUseCase>('updateMessageReadInfoUseCase'),
       this.get<IGetAccountUseCase>('getAccountUseCase'),
       this.get<IGetChatByIdUseCase>('getChatByIdUseCase'),
+      this.get<ILeaveChatUseCase>('leaveChatUseCase'),
       this.get<IRealtimeChatService>('realtimeChatService')
     ));
     this.services.set('reportController', new ReportController(

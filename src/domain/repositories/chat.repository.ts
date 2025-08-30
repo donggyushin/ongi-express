@@ -14,4 +14,5 @@ export interface IChatRepository {
   ): Promise<Chat | null>;
   create(participantsIds: string[]): Promise<Chat>;
   updateMessageReadInfo(chatId: string, profileId: string, dateInfoUserViewedRecently: Date): Promise<Chat>;
+  removeParticipant(chatId: string, profileId: string): Promise<Chat>;
 }

@@ -614,4 +614,161 @@ export class PrismaChatService implements IChatRepository {
       throw new Error('Failed to update message read info');
     }
   }
+
+  async removeParticipant(chatId: string, profileId: string): Promise<Chat> {
+    try {
+      // First, verify chat exists and user is a participant
+      const chat = await this.prisma.chat.findUnique({
+        where: { id: chatId }
+      });
+
+      if (!chat) {
+        throw new Error('Chat not found');
+      }
+
+      if (!chat.participantsIds.includes(profileId)) {
+        throw new Error('User is not a participant in this chat');
+      }
+
+      // Remove participant from participantsIds array
+      const updatedParticipantsIds = chat.participantsIds.filter(id => id !== profileId);
+
+      // Update chat
+      const updatedChat = await this.prisma.chat.update({
+        where: { id: chatId },
+        data: {
+          participantsIds: updatedParticipantsIds
+        },
+        include: {
+          messages: {
+            orderBy: {
+              createdAt: 'desc'
+            },
+            take: 10
+          },
+          messageReadInfos: true
+        }
+      });
+
+      // Remove user's message read info
+      await this.prisma.messageReadInfo.deleteMany({
+        where: {
+          chatId: chatId,
+          profileId: profileId
+        }
+      });
+
+      // Get remaining participant profiles
+      const participantProfiles = await this.prisma.profile.findMany({
+        where: {
+          id: { in: updatedChat.participantsIds }
+        },
+        select: {
+          id: true,
+          accountId: true,
+          nickname: true,
+          email: true,
+          introduction: true,
+          mbti: true,
+          gender: true,
+          height: true,
+          weight: true,
+          lastTokenAuthAt: true,
+          createdAt: true,
+          updatedAt: true,
+          profileImage: {
+            select: {
+              url: true,
+              publicId: true
+            }
+          },
+          images: {
+            select: {
+              url: true,
+              publicId: true
+            },
+            take: 3
+          },
+          qnas: {
+            select: {
+              id: true,
+              question: true,
+              answer: true,
+              createdAt: true,
+              updatedAt: true
+            },
+            take: 2,
+            orderBy: {
+              createdAt: 'desc'
+            }
+          }
+        }
+      });
+
+      const messages = updatedChat.messages.map(message => 
+        new Message(
+          message.id,
+          message.writerProfileId,
+          message.text,
+          message.createdAt,
+          message.updatedAt
+        )
+      );
+
+      const messageReadInfos = updatedChat.messageReadInfos.map(info =>
+        new MessageReadInfo(
+          info.id,
+          info.profileId,
+          info.dateInfoUserViewedRecently
+        )
+      );
+
+      const participants = participantProfiles.map(profile => {
+        return new Profile(
+          profile.id,
+          profile.accountId,
+          profile.nickname,
+          profile.email,
+          profile.introduction,
+          profile.profileImage ? new Image(
+            profile.profileImage.url,
+            profile.profileImage.publicId
+          ) : null,
+          profile.images.map(img => new Image(
+            img.url,
+            img.publicId
+          )),
+          profile.mbti as any,
+          profile.gender as any,
+          profile.height,
+          profile.weight,
+          null,
+          profile.lastTokenAuthAt,
+          null,
+          profile.qnas.map(qna => new QnA(
+            qna.id,
+            qna.question,
+            qna.answer,
+            qna.createdAt,
+            qna.updatedAt
+          )),
+          profile.createdAt,
+          profile.updatedAt
+        );
+      });
+
+      return new Chat(
+        updatedChat.id,
+        updatedChat.participantsIds,
+        messages,
+        messageReadInfos,
+        participants,
+        updatedChat.createdAt,
+        updatedChat.updatedAt
+      );
+    } catch (error) {
+      console.error('Error removing participant from chat:', error);
+      throw new Error('Failed to remove participant from chat');
+    }
+  }
 }

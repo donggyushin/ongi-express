@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ICreateOrFindChatUseCase, IGetUserChatsUseCase, IAddMessageUseCase, IUpdateMessageReadInfoUseCase, IGetAccountUseCase, IGetChatByIdUseCase } from '@/domain/use-cases';
+import { ICreateOrFindChatUseCase, IGetUserChatsUseCase, IAddMessageUseCase, IUpdateMessageReadInfoUseCase, IGetAccountUseCase, IGetChatByIdUseCase, ILeaveChatUseCase } from '@/domain/use-cases';
 import { ApiResponse } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
 import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
@@ -12,6 +12,7 @@ export class ChatController {
     private readonly updateMessageReadInfoUseCase: IUpdateMessageReadInfoUseCase,
     private readonly getAccountUseCase: IGetAccountUseCase,
     private readonly getChatByIdUseCase: IGetChatByIdUseCase,
+    private readonly leaveChatUseCase: ILeaveChatUseCase,
     private readonly realtimeChatService: IRealtimeChatService
   ) {}
 
@@ -373,6 +374,79 @@ export class ChatController {
         } else if (error.message.includes('Not authorized')) {
           errorMessage = error.message;
           statusCode = 403;
+        }
+      }
+
+      const response: ApiResponse = {
+        success: false,
+        error: errorMessage
+      };
+      
+      res.status(statusCode).json(response);
+    }
+  }
+
+  async leaveChat(req: AuthenticatedRequest, res: Response): Promise<void> {
+    try {
+      if (!req.userId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'User ID not found in token'
+        };
+        res.status(401).json(response);
+        return;
+      }
+
+      const { chatId } = req.params;
+
+      if (!chatId) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Missing required parameter: chatId'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // Get current user's profile first
+      const currentAccount = await this.getAccountUseCase.execute(req.userId);
+      if (!currentAccount || !currentAccount.profile) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Current user profile not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+
+      const updatedChat = await this.leaveChatUseCase.execute(
+        chatId,
+        currentAccount.profile.id
+      );
+      
+      const response: ApiResponse = {
+        success: true,
+        data: {
+          chat: updatedChat.toJSON()
+        },
+        message: 'Successfully left the chat'
+      };
+      
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Leave chat error:', error);
+      
+      let errorMessage = 'Failed to leave chat';
+      let statusCode = 500;
+
+      if (error instanceof Error) {
+        if (error.message.includes('Chat not found') || 
+            error.message.includes('not authorized')) {
+          errorMessage = error.message;
+          statusCode = 403;
+        } else if (error.message.includes('not a participant')) {
+          errorMessage = error.message;
+          statusCode = 400;
         }
       }
 

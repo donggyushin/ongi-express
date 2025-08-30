@@ -44,6 +44,10 @@ export interface IUpdateMessageReadInfoUseCase {
   execute(chatId: string, profileId: string, dateInfoUserViewedRecently: Date): Promise<Chat>;
 }
 
+export interface ILeaveChatUseCase {
+  execute(chatId: string, profileId: string): Promise<Chat>;
+}
+
 export class CreateOrFindChatUseCase implements ICreateOrFindChatUseCase {
   constructor(
     private chatRepository: IChatRepository,
@@ -249,5 +253,24 @@ export class GetChatByIdUseCase implements IGetChatByIdUseCase {
         nextCursor: chat.messages.length > 0 ? chat.messages[chat.messages.length - 1].id : undefined
       }
     };
+  }
+}
+
+export class LeaveChatUseCase implements ILeaveChatUseCase {
+  constructor(
+    private chatRepository: IChatRepository
+  ) {}
+
+  async execute(chatId: string, profileId: string): Promise<Chat> {
+    // Get user's chats to verify access
+    const userChats = await this.chatRepository.findByProfileId(profileId);
+    const targetChat = userChats.find(chat => chat.id === chatId);
+
+    if (!targetChat) {
+      throw new Error('Chat not found or user not authorized to access this chat');
+    }
+
+    // Remove participant from the chat
+    return await this.chatRepository.removeParticipant(chatId, profileId);
   }
 }

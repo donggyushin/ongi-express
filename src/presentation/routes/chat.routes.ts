@@ -15,6 +15,7 @@ export class ChatRoutes {
     this.router.post('/:profileId', AuthMiddleware.verifyToken, (req, res) => this.chatController.createOrFindChat(req, res));
     this.router.post('/:chatId/messages', AuthMiddleware.verifyToken, (req, res) => this.chatController.addMessage(req, res));
     this.router.put('/:chatId/read-info', AuthMiddleware.verifyToken, (req, res) => this.chatController.updateMessageReadInfo(req, res));
+    this.router.delete('/:chatId/leave', AuthMiddleware.verifyToken, (req, res) => this.chatController.leaveChat(req, res));
   }
 
   getRouter(): Router {
