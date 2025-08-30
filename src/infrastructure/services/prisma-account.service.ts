@@ -23,7 +23,11 @@ export class PrismaAccountService implements IAccountRepository {
             nickname: generateFriendlyNickname(),
           },
           include: {
-            qnas: true,
+            qnas: {
+              orderBy: {
+                createdAt: 'asc'
+              }
+            },
             profileImage: true,
             images: true,
             location: true
@@ -88,7 +92,11 @@ export class PrismaAccountService implements IAccountRepository {
       const profile = await this.prisma.profile.findUnique({
         where: { accountId: id },
         include: {
-          qnas: true,
+          qnas: {
+            orderBy: {
+              createdAt: 'asc'
+            }
+          },
           profileImage: true,
           images: true,
           location: true

@@ -9,7 +9,11 @@ export class PrismaProfileService implements IProfileRepository {
     const profile = await this.prisma.profile.findUnique({
       where: { id },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -29,7 +33,11 @@ export class PrismaProfileService implements IProfileRepository {
         } 
       },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -45,7 +53,11 @@ export class PrismaProfileService implements IProfileRepository {
     const profile = await this.prisma.profile.findUnique({
       where: { accountId },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -67,7 +79,11 @@ export class PrismaProfileService implements IProfileRepository {
         }
       },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -82,7 +98,11 @@ export class PrismaProfileService implements IProfileRepository {
       where: { accountId },
       data: { nickname },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -97,7 +117,11 @@ export class PrismaProfileService implements IProfileRepository {
       where: { accountId },
       data: { mbti: mbti as any },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -119,7 +143,11 @@ export class PrismaProfileService implements IProfileRepository {
         }
       },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -152,7 +180,11 @@ export class PrismaProfileService implements IProfileRepository {
     const updatedProfile = await this.prisma.profile.findUnique({
       where: { accountId },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -190,7 +222,11 @@ export class PrismaProfileService implements IProfileRepository {
     const updatedProfile = await this.prisma.profile.findUnique({
       where: { accountId },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -227,7 +263,11 @@ export class PrismaProfileService implements IProfileRepository {
     const updatedProfile = await this.prisma.profile.findUnique({
       where: { accountId },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -267,7 +307,11 @@ export class PrismaProfileService implements IProfileRepository {
     const updatedProfile = await this.prisma.profile.findUnique({
       where: { accountId },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -286,7 +330,11 @@ export class PrismaProfileService implements IProfileRepository {
       where: { accountId },
       data: { gender: gender as any },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -311,7 +359,11 @@ export class PrismaProfileService implements IProfileRepository {
       where: { accountId },
       data: updateData,
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -326,7 +378,11 @@ export class PrismaProfileService implements IProfileRepository {
       where: { accountId },
       data: { introduction },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -353,7 +409,11 @@ export class PrismaProfileService implements IProfileRepository {
         ]
       },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -386,7 +446,11 @@ export class PrismaProfileService implements IProfileRepository {
         ]
       },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -414,7 +478,11 @@ export class PrismaProfileService implements IProfileRepository {
         }
       },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -449,7 +517,11 @@ export class PrismaProfileService implements IProfileRepository {
       updatedProfile = await this.prisma.profile.findUnique({
         where: { accountId },
         include: {
-          qnas: true,
+          qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
           profileImage: true,
           images: true,
           location: true
@@ -468,7 +540,11 @@ export class PrismaProfileService implements IProfileRepository {
           }
         },
         include: {
-          qnas: true,
+          qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
           profileImage: true,
           images: true,
           location: true
@@ -488,7 +564,11 @@ export class PrismaProfileService implements IProfileRepository {
       where: { accountId },
       data: { fcmToken },
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true
@@ -503,7 +583,11 @@ export class PrismaProfileService implements IProfileRepository {
       where: { id },
       data,
       include: {
-        qnas: true,
+        qnas: {
+          orderBy: {
+            createdAt: 'asc'
+          }
+        },
         profileImage: true,
         images: true,
         location: true

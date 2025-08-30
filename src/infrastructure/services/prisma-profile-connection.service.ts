@@ -199,7 +199,11 @@ export class PrismaProfileConnectionService implements IProfileConnectionReposit
           include: {
             profile: {
               include: {
-                qnas: true,
+                qnas: {
+                  orderBy: {
+                    createdAt: 'asc'
+                  }
+                },
                 profileImage: true,
                 images: true,
                 location: true
