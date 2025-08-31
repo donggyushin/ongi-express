@@ -6,6 +6,9 @@ import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository
 import { IFirebaseService } from '@/domain/services/IFirebaseService';
 import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
 import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService, RealtimeChatService, PrismaReportService, PrismaNotificationService } from '@/infrastructure/services';
+import { CronService } from '@/infrastructure/services/cron.service';
+import { ProfileConnectionCronService } from '@/infrastructure/services/profile-connection-cron.service';
+import { ICronService } from '@/domain/services/cron.service.interface';
 import { FirebaseService } from '@/infrastructure/services/FirebaseService';
 import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma-email-verification.service';
 import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
@@ -54,6 +57,11 @@ export class Container {
     this.services.set('jwtRepository', new JwtService());
     this.services.set('realtimeChatService', new RealtimeChatService());
     this.services.set('firebaseService', new FirebaseService(this.get<ILoggerService>('logger')));
+    this.services.set('cronService', new CronService(this.get<ILoggerService>('logger')));
+    this.services.set('profileConnectionCronService', new ProfileConnectionCronService(
+      this.get<ICronService>('cronService'),
+      this.get<ILoggerService>('logger')
+    ));
 
     // Use Cases
     this.services.set('healthUseCase', new HealthUseCase(this.get<ISystemRepository>('systemRepository')));

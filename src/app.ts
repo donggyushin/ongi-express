@@ -11,6 +11,7 @@ import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRout
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
 import { NotificationRoutes } from '@/presentation/routes/NotificationRoutes';
 import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
+import { ProfileConnectionCronService } from '@/infrastructure/services/profile-connection-cron.service';
 
 dotenv.config();
 
@@ -24,6 +25,7 @@ class App {
     this.initializeRoutes();
     this.initializeErrorHandling();
     this.initializeWebSocket();
+    this.initializeCronJobs();
   }
 
   private initializeMiddlewares(): void {
@@ -75,6 +77,12 @@ class App {
     const realtimeChatService = this.container.get<IRealtimeChatService>('realtimeChatService');
     realtimeChatService.initialize(this.server);
     console.log('💬 WebSocket server initialized for real-time chat');
+  }
+
+  private initializeCronJobs(): void {
+    const profileConnectionCronService = this.container.get<ProfileConnectionCronService>('profileConnectionCronService');
+    profileConnectionCronService.initialize();
+    console.log('⏰ Cron jobs initialized - Daily profile connections scheduled for 8:00 PM KST');
   }
 
   public listen(): void {

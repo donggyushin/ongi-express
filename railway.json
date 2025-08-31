@@ -3,13 +3,6 @@
   "deploy": {
     "numReplicas": 1,
     "restartPolicyType": "ON_FAILURE",
-    "sleepApplication": false,
-    "cronJobs": [
-      {
-        "name": "daily-profile-connections",
-        "schedule": "0 10 * * *",
-        "command": "curl -X POST $RAILWAY_PUBLIC_DOMAIN/profile-connections/generate-for-active-profiles -H 'Content-Type: application/json'"
-      }
-    ]
+    "sleepApplication": false
   }
 }
