@@ -17,6 +17,10 @@ export interface ICreateAccountWithEmailPasswordUseCase {
   execute(email: string, password: string): Promise<AuthTokens>;
 }
 
+export interface ILoginWithEmailPasswordUseCase {
+  execute(email: string, password: string): Promise<AuthTokens>;
+}
+
 export interface IDeleteAccountUseCase {
   execute(id: string): Promise<boolean>;
 }
@@ -70,6 +74,32 @@ export class CreateAccountWithEmailPasswordUseCase implements ICreateAccountWith
   async execute(email: string, password: string): Promise<AuthTokens> {
     // Create account with email and password
     const account = await this.accountRepository.createWithEmailPassword(email, password);
+
+    // Generate and return tokens for the user
+    return await this.jwtRepository.generateTokens(account.id);
+  }
+}
+
+export class LoginWithEmailPasswordUseCase implements ILoginWithEmailPasswordUseCase {
+  constructor(
+    private accountRepository: IAccountRepository,
+    private jwtRepository: IJwtRepository
+  ) {}
+
+  async execute(email: string, password: string): Promise<AuthTokens> {
+    // Find account by email
+    const account = await this.accountRepository.findByEmail(email);
+    
+    if (!account) {
+      throw new Error('Invalid email or password');
+    }
+
+    // Validate password
+    const isValidPassword = await this.accountRepository.validatePassword(account.id, password);
+    
+    if (!isValidPassword) {
+      throw new Error('Invalid email or password');
+    }
 
     // Generate and return tokens for the user
     return await this.jwtRepository.generateTokens(account.id);

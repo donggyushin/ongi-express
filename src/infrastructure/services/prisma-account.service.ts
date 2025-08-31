@@ -307,6 +307,24 @@ export class PrismaAccountService implements IAccountRepository {
     }
   }
 
+  async validatePassword(accountId: string, password: string): Promise<boolean> {
+    try {
+      const account = await this.prisma.account.findUnique({
+        where: { id: accountId },
+        select: { password: true }
+      });
+
+      if (!account || !account.password) {
+        return false;
+      }
+
+      return await PasswordHasher.compare(password, account.password);
+    } catch (error) {
+      console.error('Error validating password:', error);
+      return false;
+    }
+  }
+
   async deleteById(id: string): Promise<boolean> {
     try {
       await this.prisma.$transaction(async (tx) => {

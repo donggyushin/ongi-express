@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ICreateAccountUseCase, IGetAccountUseCase, IGetAccountByEmailUseCase, ICreateAccountWithEmailPasswordUseCase, IRefreshTokenUseCase, IDeleteAccountUseCase } from '@/domain/use-cases';
+import { ICreateAccountUseCase, IGetAccountUseCase, IGetAccountByEmailUseCase, ICreateAccountWithEmailPasswordUseCase, ILoginWithEmailPasswordUseCase, IRefreshTokenUseCase, IDeleteAccountUseCase } from '@/domain/use-cases';
 import { AccountType } from '@/domain/entities';
 import { ApiResponse, CreateAccountRequest, AuthTokensResponse, RefreshTokenRequest } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
@@ -10,6 +10,7 @@ export class AccountController {
     private readonly getAccountUseCase: IGetAccountUseCase,
     private readonly getAccountByEmailUseCase: IGetAccountByEmailUseCase,
     private readonly createAccountWithEmailPasswordUseCase: ICreateAccountWithEmailPasswordUseCase,
+    private readonly loginWithEmailPasswordUseCase: ILoginWithEmailPasswordUseCase,
     private readonly refreshTokenUseCase: IRefreshTokenUseCase,
     private readonly deleteAccountUseCase: IDeleteAccountUseCase
   ) {}
@@ -282,6 +283,59 @@ export class AccountController {
       };
       
       res.status(500).json(response);
+    }
+  }
+
+  async loginWithEmailPassword(req: Request, res: Response): Promise<void> {
+    try {
+      const { email, password } = req.body;
+
+      if (!email || !password) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Missing required fields: email and password'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      // Basic email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Invalid email format'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const tokens = await this.loginWithEmailPasswordUseCase.execute(email, password);
+      
+      const response: ApiResponse<AuthTokensResponse> = {
+        success: true,
+        data: tokens.toJSON(),
+        message: 'Login successful'
+      };
+      
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Login with email/password error:', error);
+      
+      let errorMessage = 'Login failed';
+      let statusCode = 500;
+      
+      if (error instanceof Error && error.message === 'Invalid email or password') {
+        errorMessage = error.message;
+        statusCode = 401;
+      }
+      
+      const response: ApiResponse = {
+        success: false,
+        error: errorMessage
+      };
+      
+      res.status(statusCode).json(response);
     }
   }
 }
