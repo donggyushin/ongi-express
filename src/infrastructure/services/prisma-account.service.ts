@@ -1,7 +1,8 @@
 import { Account, AccountType, Profile, QnA, Image, Location } from '@/domain/entities';
 import { IAccountRepository } from '@/domain/repositories';
 import { PrismaClient } from '../../generated/prisma';
-import { generateFriendlyNickname } from '@/shared/utils';
+import { generateFriendlyNickname, PasswordHasher } from '@/shared/utils';
+import { createId } from '@paralleldrive/cuid2';
 
 export class PrismaAccountService implements IAccountRepository {
   constructor(private prisma: PrismaClient) {}
@@ -72,7 +73,7 @@ export class PrismaAccountService implements IAccountRepository {
         result.profile.updatedAt
       );
 
-      return new Account(result.account.id, result.account.type as AccountType, profile, result.account.email, result.account.createdAt);
+      return new Account(result.account.id, result.account.type as AccountType, profile, result.account.email, result.account.password, result.account.createdAt);
     } catch (error) {
       console.error('Error creating account:', error);
       throw new Error('Failed to create account');
@@ -142,7 +143,7 @@ export class PrismaAccountService implements IAccountRepository {
         profile.updatedAt
       );
 
-      return new Account(account.id, account.type as AccountType, profileEntity, account.email, account.createdAt);
+      return new Account(account.id, account.type as AccountType, profileEntity, account.email, account.password, account.createdAt);
     } catch (error) {
       console.error('Error finding account by id:', error);
       throw new Error('Failed to find account');
@@ -212,10 +213,97 @@ export class PrismaAccountService implements IAccountRepository {
         profile.updatedAt
       );
 
-      return new Account(account.id, account.type as AccountType, profileEntity, account.email, account.createdAt);
+      return new Account(account.id, account.type as AccountType, profileEntity, account.email, account.password, account.createdAt);
     } catch (error) {
       console.error('Error finding account by email:', error);
       throw new Error('Failed to find account by email');
+    }
+  }
+
+  async createWithEmailPassword(email: string, password: string): Promise<Account> {
+    try {
+      const hashedPassword = await PasswordHasher.hash(password);
+      const accountId = createId();
+
+      // Check if account with this email already exists
+      const existingAccount = await this.prisma.account.findFirst({
+        where: { email },
+      });
+
+      if (existingAccount) {
+        throw new Error('Account with this email already exists');
+      }
+
+      // Create account and profile in a transaction
+      const result = await this.prisma.$transaction(async (tx) => {
+        const account = await tx.account.create({
+          data: {
+            id: accountId,
+            type: 'email',
+            email,
+            password: hashedPassword,
+          },
+        });
+
+        const profile = await tx.profile.create({
+          data: {
+            accountId,
+            nickname: generateFriendlyNickname(),
+          },
+          include: {
+            qnas: {
+              orderBy: {
+                createdAt: 'asc'
+              }
+            },
+            profileImage: true,
+            images: true,
+            location: true
+          }
+        });
+
+        return { account, profile };
+      });
+
+      const profile = new Profile(
+        result.profile.id,
+        result.profile.accountId,
+        result.profile.nickname,
+        result.profile.email,
+        result.profile.introduction,
+        result.profile.profileImage ? new Image(
+          result.profile.profileImage.url,
+          result.profile.profileImage.publicId
+        ) : null,
+        result.profile.images.map((img) => new Image(img.url, img.publicId)),
+        result.profile.mbti as any,
+        result.profile.gender as any,
+        result.profile.height,
+        result.profile.weight,
+        result.profile.location ? new Location(
+          result.profile.location.id,
+          result.profile.location.latitude,
+          result.profile.location.longitude,
+          result.profile.location.createdAt,
+          result.profile.location.updatedAt
+        ) : null,
+        result.profile.lastTokenAuthAt,
+        result.profile.fcmToken,
+        result.profile.qnas.map(qna => new QnA(
+          qna.id,
+          qna.question,
+          qna.answer,
+          qna.createdAt,
+          qna.updatedAt
+        )),
+        result.profile.createdAt,
+        result.profile.updatedAt
+      );
+
+      return new Account(result.account.id, result.account.type as AccountType, profile, result.account.email, result.account.password, result.account.createdAt);
+    } catch (error) {
+      console.error('Error creating account with email/password:', error);
+      throw new Error('Failed to create account with email and password');
     }
   }
 

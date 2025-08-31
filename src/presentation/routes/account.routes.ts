@@ -11,6 +11,7 @@ export class AccountRoutes {
 
   private initializeRoutes(): void {
     this.router.post('/', (req, res) => this.accountController.createAccount(req, res));
+    this.router.post('/email-password', (req, res) => this.accountController.createAccountWithEmailPassword(req, res));
     this.router.post('/refresh', (req, res) => this.accountController.refreshToken(req, res));
     this.router.get('/me', AuthMiddleware.verifyToken, (req, res) => this.accountController.getAccount(req, res));
     this.router.get('/by-email', (req, res) => this.accountController.getAccountByEmail(req, res));

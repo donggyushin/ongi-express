@@ -13,6 +13,7 @@ export class Account {
     public readonly type: AccountType,
     public readonly profile: Profile,
     public readonly email: string | null = null,
+    public readonly password: string | null = null,
     public readonly createdAt: Date = new Date()
   ) {}
 

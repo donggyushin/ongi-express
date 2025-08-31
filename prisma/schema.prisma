@@ -18,6 +18,7 @@ model Account {
   id        String      @id
   type      AccountType
   email     String?     @db.VarChar(255)
+  password  String?     @db.VarChar(255)
   createdAt DateTime    @default(now()) @map("created_at")
 
   @@map("accounts")

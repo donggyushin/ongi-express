@@ -13,6 +13,10 @@ export interface IGetAccountByEmailUseCase {
   execute(email: string): Promise<Account | null>;
 }
 
+export interface ICreateAccountWithEmailPasswordUseCase {
+  execute(email: string, password: string): Promise<AuthTokens>;
+}
+
 export interface IDeleteAccountUseCase {
   execute(id: string): Promise<boolean>;
 }
@@ -54,6 +58,21 @@ export class GetAccountByEmailUseCase implements IGetAccountByEmailUseCase {
 
   async execute(email: string): Promise<Account | null> {
     return await this.accountRepository.findByEmail(email);
+  }
+}
+
+export class CreateAccountWithEmailPasswordUseCase implements ICreateAccountWithEmailPasswordUseCase {
+  constructor(
+    private accountRepository: IAccountRepository,
+    private jwtRepository: IJwtRepository
+  ) {}
+
+  async execute(email: string, password: string): Promise<AuthTokens> {
+    // Create account with email and password
+    const account = await this.accountRepository.createWithEmailPassword(email, password);
+
+    // Generate and return tokens for the user
+    return await this.jwtRepository.generateTokens(account.id);
   }
 }
 
