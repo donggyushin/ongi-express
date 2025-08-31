@@ -129,11 +129,10 @@ export class AddMessageUseCase implements IAddMessageUseCase {
       throw new Error('Message text is too long (max 1000 characters)');
     }
 
-    // Verify that the chat exists
-    const chat = await this.chatRepository.findByParticipantsIds([writerProfileId]);
-    const userChat = chat ? [chat] : await this.chatRepository.findByProfileId(writerProfileId);
+    // Verify that the chat exists and user has access
+    const userChats = await this.chatRepository.findByProfileId(writerProfileId);
     
-    const targetChat = userChat.find(c => c.id === chatId);
+    const targetChat = userChats.find(c => c.id === chatId);
     if (!targetChat) {
       throw new Error('Chat not found or user not authorized to send messages to this chat');
     }
