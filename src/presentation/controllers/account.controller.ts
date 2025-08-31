@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { ICreateAccountUseCase, IGetAccountUseCase, IRefreshTokenUseCase, IDeleteAccountUseCase } from '@/domain/use-cases';
+import { ICreateAccountUseCase, IGetAccountUseCase, IGetAccountByEmailUseCase, IRefreshTokenUseCase, IDeleteAccountUseCase } from '@/domain/use-cases';
 import { AccountType } from '@/domain/entities';
 import { ApiResponse, CreateAccountRequest, AuthTokensResponse, RefreshTokenRequest } from '@/shared/types';
 import { AuthenticatedRequest } from '@/presentation/middlewares/auth.middleware';
@@ -8,6 +8,7 @@ export class AccountController {
   constructor(
     private readonly createAccountUseCase: ICreateAccountUseCase,
     private readonly getAccountUseCase: IGetAccountUseCase,
+    private readonly getAccountByEmailUseCase: IGetAccountByEmailUseCase,
     private readonly refreshTokenUseCase: IRefreshTokenUseCase,
     private readonly deleteAccountUseCase: IDeleteAccountUseCase
   ) {}
@@ -169,6 +170,48 @@ export class AccountController {
       const response: ApiResponse = {
         success: false,
         error: '계정 삭제에 실패했습니다'
+      };
+      
+      res.status(500).json(response);
+    }
+  }
+
+  async getAccountByEmail(req: Request, res: Response): Promise<void> {
+    try {
+      const email = req.query.email as string;
+
+      if (!email) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Missing required query parameter: email'
+        };
+        res.status(400).json(response);
+        return;
+      }
+
+      const account = await this.getAccountByEmailUseCase.execute(email);
+      
+      if (!account) {
+        const response: ApiResponse = {
+          success: false,
+          error: 'Account not found'
+        };
+        res.status(404).json(response);
+        return;
+      }
+      
+      const response: ApiResponse = {
+        success: true,
+        data: account,
+        message: 'Account retrieved successfully'
+      };
+      
+      res.status(200).json(response);
+    } catch (error) {
+      console.error('Get account by email error:', error);
+      const response: ApiResponse = {
+        success: false,
+        error: 'Failed to retrieve account by email'
       };
       
       res.status(500).json(response);

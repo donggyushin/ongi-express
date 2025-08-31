@@ -12,6 +12,7 @@ export class Account {
     public readonly id: string,
     public readonly type: AccountType,
     public readonly profile: Profile,
+    public readonly email: string | null = null,
     public readonly createdAt: Date = new Date()
   ) {}
 
@@ -20,6 +21,7 @@ export class Account {
       id: this.id,
       type: this.type,
       profile: this.profile.toJSON(),
+      email: this.email,
       createdAt: this.createdAt.toISOString()
     };
   }

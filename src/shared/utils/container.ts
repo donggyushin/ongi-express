@@ -1,4 +1,4 @@
-import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase, GetChatByIdUseCase, IGetChatByIdUseCase, LeaveChatUseCase, ILeaveChatUseCase, CreateReportUseCase, ICreateReportUseCase, GetMyReportsUseCase, IGetMyReportsUseCase, GetReportsAgainstMeUseCase, IGetReportsAgainstMeUseCase } from '@/domain/use-cases';
+import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, GetAccountByEmailUseCase, IGetAccountByEmailUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase, GetChatByIdUseCase, IGetChatByIdUseCase, LeaveChatUseCase, ILeaveChatUseCase, CreateReportUseCase, ICreateReportUseCase, GetMyReportsUseCase, IGetMyReportsUseCase, GetReportsAgainstMeUseCase, IGetReportsAgainstMeUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
 import { NotificationUseCase, INotificationUseCase } from '@/domain/use-cases/notification.use-case';
 import { NotificationDataUseCase, INotificationDataUseCase } from '@/domain/use-cases/notification-data.use-case';
@@ -63,6 +63,7 @@ export class Container {
       this.get<IJwtRepository>('jwtRepository')
     ));
     this.services.set('getAccountUseCase', new GetAccountUseCase(this.get<IAccountRepository>('accountRepository')));
+    this.services.set('getAccountByEmailUseCase', new GetAccountByEmailUseCase(this.get<IAccountRepository>('accountRepository')));
     this.services.set('deleteAccountUseCase', new DeleteAccountUseCase(this.get<IAccountRepository>('accountRepository')));
     this.services.set('refreshTokenUseCase', new RefreshTokenUseCase(this.get<IJwtRepository>('jwtRepository')));
     this.services.set('profileUseCase', new ProfileUseCase(
@@ -129,6 +130,7 @@ export class Container {
     this.services.set('accountController', new AccountController(
       this.get<ICreateAccountUseCase>('createAccountUseCase'),
       this.get<IGetAccountUseCase>('getAccountUseCase'),
+      this.get<IGetAccountByEmailUseCase>('getAccountByEmailUseCase'),
       this.get<IRefreshTokenUseCase>('refreshTokenUseCase'),
       this.get<IDeleteAccountUseCase>('deleteAccountUseCase')
     ));

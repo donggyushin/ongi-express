@@ -72,7 +72,7 @@ export class PrismaAccountService implements IAccountRepository {
         result.profile.updatedAt
       );
 
-      return new Account(result.account.id, result.account.type as AccountType, profile, result.account.createdAt);
+      return new Account(result.account.id, result.account.type as AccountType, profile, result.account.email, result.account.createdAt);
     } catch (error) {
       console.error('Error creating account:', error);
       throw new Error('Failed to create account');
@@ -142,10 +142,80 @@ export class PrismaAccountService implements IAccountRepository {
         profile.updatedAt
       );
 
-      return new Account(account.id, account.type as AccountType, profileEntity, account.createdAt);
+      return new Account(account.id, account.type as AccountType, profileEntity, account.email, account.createdAt);
     } catch (error) {
       console.error('Error finding account by id:', error);
       throw new Error('Failed to find account');
+    }
+  }
+
+  async findByEmail(email: string): Promise<Account | null> {
+    try {
+      const account = await this.prisma.account.findFirst({
+        where: { email },
+      });
+
+      if (!account) {
+        return null;
+      }
+
+      const profile = await this.prisma.profile.findUnique({
+        where: { accountId: account.id },
+        include: {
+          qnas: {
+            orderBy: {
+              createdAt: 'asc'
+            }
+          },
+          profileImage: true,
+          images: true,
+          location: true
+        }
+      });
+
+      if (!profile) {
+        return null;
+      }
+
+      const profileEntity = new Profile(
+        profile.id,
+        profile.accountId,
+        profile.nickname,
+        profile.email,
+        profile.introduction,
+        profile.profileImage ? new Image(
+          profile.profileImage.url,
+          profile.profileImage.publicId
+        ) : null,
+        profile.images.map((img) => new Image(img.url, img.publicId)),
+        profile.mbti as any,
+        profile.gender as any,
+        profile.height,
+        profile.weight,
+        profile.location ? new Location(
+          profile.location.id,
+          profile.location.latitude,
+          profile.location.longitude,
+          profile.location.createdAt,
+          profile.location.updatedAt
+        ) : null,
+        profile.lastTokenAuthAt,
+        profile.fcmToken,
+        profile.qnas.map(qna => new QnA(
+          qna.id,
+          qna.question,
+          qna.answer,
+          qna.createdAt,
+          qna.updatedAt
+        )),
+        profile.createdAt,
+        profile.updatedAt
+      );
+
+      return new Account(account.id, account.type as AccountType, profileEntity, account.email, account.createdAt);
+    } catch (error) {
+      console.error('Error finding account by email:', error);
+      throw new Error('Failed to find account by email');
     }
   }
 

@@ -9,6 +9,10 @@ export interface IGetAccountUseCase {
   execute(id: string): Promise<Account | null>;
 }
 
+export interface IGetAccountByEmailUseCase {
+  execute(email: string): Promise<Account | null>;
+}
+
 export interface IDeleteAccountUseCase {
   execute(id: string): Promise<boolean>;
 }
@@ -40,6 +44,16 @@ export class GetAccountUseCase implements IGetAccountUseCase {
 
   async execute(id: string): Promise<Account | null> {
     return await this.accountRepository.findById(id);
+  }
+}
+
+export class GetAccountByEmailUseCase implements IGetAccountByEmailUseCase {
+  constructor(
+    private accountRepository: IAccountRepository
+  ) {}
+
+  async execute(email: string): Promise<Account | null> {
+    return await this.accountRepository.findByEmail(email);
   }
 }
 
