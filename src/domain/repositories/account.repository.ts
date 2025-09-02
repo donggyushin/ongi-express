@@ -6,5 +6,6 @@ export interface IAccountRepository {
   findById(id: string): Promise<Account | null>;
   findByEmail(email: string): Promise<Account | null>;
   validatePassword(accountId: string, password: string): Promise<boolean>;
+  updatePassword(email: string, newPassword: string): Promise<void>;
   deleteById(id: string): Promise<boolean>;
 }

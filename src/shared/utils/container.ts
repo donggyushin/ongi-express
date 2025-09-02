@@ -1,8 +1,10 @@
 import { HealthUseCase, WelcomeUseCase, IHealthUseCase, IWelcomeUseCase, CreateAccountUseCase, ICreateAccountUseCase, GetAccountUseCase, IGetAccountUseCase, GetAccountByEmailUseCase, IGetAccountByEmailUseCase, CreateAccountWithEmailPasswordUseCase, ICreateAccountWithEmailPasswordUseCase, LoginWithEmailPasswordUseCase, ILoginWithEmailPasswordUseCase, RefreshTokenUseCase, IRefreshTokenUseCase, DeleteAccountUseCase, IDeleteAccountUseCase, ProfileUseCase, IProfileUseCase, QnAExamplesUseCase, IQnAExamplesUseCase, ProfileConnectionUseCase, IProfileConnectionUseCase, CreateOrFindChatUseCase, ICreateOrFindChatUseCase, GetUserChatsUseCase, IGetUserChatsUseCase, AddMessageUseCase, IAddMessageUseCase, UpdateMessageReadInfoUseCase, IUpdateMessageReadInfoUseCase, GetChatByIdUseCase, IGetChatByIdUseCase, LeaveChatUseCase, ILeaveChatUseCase, CreateReportUseCase, ICreateReportUseCase, GetMyReportsUseCase, IGetMyReportsUseCase, GetReportsAgainstMeUseCase, IGetReportsAgainstMeUseCase } from '@/domain/use-cases';
 import { EmailVerificationUseCase, IEmailVerificationUseCase } from '@/domain/use-cases/email-verification.use-case';
+import { SendPasswordResetUseCase, VerifyPasswordResetCodeUseCase, ResetPasswordUseCase, ISendPasswordResetUseCase, IVerifyPasswordResetCodeUseCase, IResetPasswordUseCase } from '@/domain/use-cases/password-reset.use-case';
 import { NotificationUseCase, INotificationUseCase } from '@/domain/use-cases/notification.use-case';
 import { NotificationDataUseCase, INotificationDataUseCase } from '@/domain/use-cases/notification-data.use-case';
 import { IAccountRepository, ISystemRepository, IJwtRepository, IImageRepository, IProfileRepository, IEmailVerificationRepository, IProfileConnectionRepository, IChatRepository, IMessageRepository, IReportRepository, INotificationRepository } from '@/domain/repositories';
+import { IPasswordResetRepository } from '@/domain/repositories/password-reset.repository';
 import { IFirebaseService } from '@/domain/services/IFirebaseService';
 import { IRealtimeChatService } from '@/domain/interfaces/realtime-chat.service.interface';
 import { ConsoleLoggerService, ILoggerService, DatabaseService, SystemService, PrismaService, PrismaAccountService, JwtService, CloudinaryService, PrismaProfileService, PrismaProfileConnectionService, PrismaChatService, PrismaMessageService, RealtimeChatService, PrismaReportService, PrismaNotificationService } from '@/infrastructure/services';
@@ -11,15 +13,18 @@ import { ProfileConnectionCronService } from '@/infrastructure/services/profile-
 import { ICronService } from '@/domain/services/cron.service.interface';
 import { FirebaseService } from '@/infrastructure/services/FirebaseService';
 import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma-email-verification.service';
+import { PrismaPasswordResetService } from '@/infrastructure/services/prisma-password-reset.service';
 import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
 import { GmailService } from '@/infrastructure/services/gmail.service';
 import { IDatabaseService } from '@/shared/types';
 import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController, QnAExamplesController, ProfileConnectionController, ChatController, ReportController, NotificationDataController } from '@/presentation/controllers';
 import { EmailVerificationController } from '@/presentation/controllers/email-verification.controller';
+import { PasswordResetController } from '@/presentation/controllers/password-reset.controller';
 import { NotificationController } from '@/presentation/controllers/NotificationController';
 import { ErrorMiddleware } from '@/presentation/middlewares';
 import { HealthRoutes, WelcomeRoutes, DatabaseRoutes, AccountRoutes, ProfileRoutes, QnAExamplesRoutes, ProfileConnectionRoutes, ChatRoutes, ReportRoutes, NotificationDataRoutes } from '@/presentation/routes';
 import { EmailVerificationRoutes } from '@/presentation/routes/email-verification.routes';
+import { PasswordResetRoutes } from '@/presentation/routes/password-reset.routes';
 import { NotificationRoutes } from '@/presentation/routes/NotificationRoutes';
 
 export class Container {
@@ -49,6 +54,7 @@ export class Container {
     this.services.set('chatRepository', new PrismaChatService(this.get('prisma')));
     this.services.set('messageRepository', new PrismaMessageService(this.get('prisma')));
     this.services.set('emailVerificationRepository', new PrismaEmailVerificationService(this.get('prisma')));
+    this.services.set('passwordResetRepository', new PrismaPasswordResetService(this.get('prisma')));
     this.services.set('reportRepository', new PrismaReportService(this.get('prisma')));
     this.services.set('notificationRepository', new PrismaNotificationService(this.get('prisma')));
     this.services.set('imageRepository', new CloudinaryService(this.get<ILoggerService>('logger')));
@@ -91,6 +97,18 @@ export class Container {
       this.get<IEmailVerificationRepository>('emailVerificationRepository'),
       this.get<IProfileRepository>('profileRepository'),
       this.get<IEmailService>('emailService')
+    ));
+    this.services.set('sendPasswordResetUseCase', new SendPasswordResetUseCase(
+      this.get<IPasswordResetRepository>('passwordResetRepository'),
+      this.get<IAccountRepository>('accountRepository'),
+      this.get<GmailService>('emailService')
+    ));
+    this.services.set('verifyPasswordResetCodeUseCase', new VerifyPasswordResetCodeUseCase(
+      this.get<IPasswordResetRepository>('passwordResetRepository')
+    ));
+    this.services.set('resetPasswordUseCase', new ResetPasswordUseCase(
+      this.get<IPasswordResetRepository>('passwordResetRepository'),
+      this.get<IAccountRepository>('accountRepository')
     ));
     this.services.set('qnaExamplesUseCase', new QnAExamplesUseCase());
     this.services.set('profileConnectionUseCase', new ProfileConnectionUseCase(
@@ -154,6 +172,11 @@ export class Container {
     ));
     this.services.set('profileController', new ProfileController(this.get<IProfileUseCase>('profileUseCase')));
     this.services.set('emailVerificationController', new EmailVerificationController(this.get<IEmailVerificationUseCase>('emailVerificationUseCase')));
+    this.services.set('passwordResetController', new PasswordResetController(
+      this.get<ISendPasswordResetUseCase>('sendPasswordResetUseCase'),
+      this.get<IVerifyPasswordResetCodeUseCase>('verifyPasswordResetCodeUseCase'),
+      this.get<IResetPasswordUseCase>('resetPasswordUseCase')
+    ));
     this.services.set('qnaExamplesController', new QnAExamplesController(this.get<IQnAExamplesUseCase>('qnaExamplesUseCase')));
     this.services.set('profileConnectionController', new ProfileConnectionController(this.get<IProfileConnectionUseCase>('profileConnectionUseCase')));
     this.services.set('chatController', new ChatController(
@@ -187,6 +210,7 @@ export class Container {
     this.services.set('accountRoutes', new AccountRoutes(this.get<AccountController>('accountController')));
     this.services.set('profileRoutes', new ProfileRoutes(this.get<ProfileController>('profileController')));
     this.services.set('emailVerificationRoutes', new EmailVerificationRoutes(this.get<EmailVerificationController>('emailVerificationController')));
+    this.services.set('passwordResetRoutes', new PasswordResetRoutes());
     this.services.set('qnaExamplesRoutes', new QnAExamplesRoutes(this.get<QnAExamplesController>('qnaExamplesController')));
     this.services.set('profileConnectionRoutes', new ProfileConnectionRoutes(this.get<ProfileConnectionController>('profileConnectionController')));
     this.services.set('chatRoutes', new ChatRoutes(this.get<ChatController>('chatController')));

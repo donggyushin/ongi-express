@@ -325,6 +325,20 @@ export class PrismaAccountService implements IAccountRepository {
     }
   }
 
+  async updatePassword(email: string, newPassword: string): Promise<void> {
+    try {
+      const hashedPassword = await PasswordHasher.hash(newPassword);
+      
+      await this.prisma.account.updateMany({
+        where: { email },
+        data: { password: hashedPassword }
+      });
+    } catch (error) {
+      console.error('Error updating password:', error);
+      throw new Error('Failed to update password');
+    }
+  }
+
   async deleteById(id: string): Promise<boolean> {
     try {
       await this.prisma.$transaction(async (tx) => {
