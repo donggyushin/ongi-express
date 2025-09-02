@@ -44,182 +44,237 @@ export class Container {
   }
 
   private registerServices(): void {
-    // Infrastructure
-    this.services.set('logger', new ConsoleLoggerService());
-    this.services.set('database', new DatabaseService());
-    this.services.set('prisma', PrismaService.getInstance());
-    this.services.set('accountRepository', new PrismaAccountService(this.get('prisma')));
-    this.services.set('profileRepository', new PrismaProfileService(this.get('prisma')));
-    this.services.set('profileConnectionRepository', new PrismaProfileConnectionService(this.get('prisma')));
-    this.services.set('chatRepository', new PrismaChatService(this.get('prisma')));
-    this.services.set('messageRepository', new PrismaMessageService(this.get('prisma')));
-    this.services.set('emailVerificationRepository', new PrismaEmailVerificationService(this.get('prisma')));
-    this.services.set('passwordResetRepository', new PrismaPasswordResetService(this.get('prisma')));
-    this.services.set('reportRepository', new PrismaReportService(this.get('prisma')));
-    this.services.set('notificationRepository', new PrismaNotificationService(this.get('prisma')));
-    this.services.set('imageRepository', new CloudinaryService(this.get<ILoggerService>('logger')));
-    this.services.set('emailService', new GmailService());
-    this.services.set('systemRepository', new SystemService());
-    this.services.set('jwtRepository', new JwtService());
-    this.services.set('realtimeChatService', new RealtimeChatService());
-    this.services.set('firebaseService', new FirebaseService(this.get<ILoggerService>('logger')));
-    this.services.set('cronService', new CronService(this.get<ILoggerService>('logger')));
-    this.services.set('profileConnectionCronService', new ProfileConnectionCronService(
-      this.get<ICronService>('cronService'),
-      this.get<ILoggerService>('logger')
-    ));
+    // Infrastructure - Create instances first
+    const logger = new ConsoleLoggerService();
+    const database = new DatabaseService();
+    const prisma = PrismaService.getInstance();
+    const gmailService = new GmailService();
+    const systemService = new SystemService();
+    
+    // Register base services
+    this.services.set('logger', logger);
+    this.services.set('database', database);
+    this.services.set('prisma', prisma);
+    this.services.set('emailService', gmailService);
+    this.services.set('systemRepository', systemService);
+    
+    // Register repositories that depend on prisma
+    this.services.set('accountRepository', new PrismaAccountService(prisma));
+    this.services.set('profileRepository', new PrismaProfileService(prisma));
+    this.services.set('profileConnectionRepository', new PrismaProfileConnectionService(prisma));
+    this.services.set('chatRepository', new PrismaChatService(prisma));
+    this.services.set('messageRepository', new PrismaMessageService(prisma));
+    this.services.set('emailVerificationRepository', new PrismaEmailVerificationService(prisma));
+    this.services.set('passwordResetRepository', new PrismaPasswordResetService(prisma));
+    this.services.set('reportRepository', new PrismaReportService(prisma));
+    this.services.set('notificationRepository', new PrismaNotificationService(prisma));
+    this.services.set('imageRepository', new CloudinaryService(logger));
+    
+    // Register other services
+    const jwtService = new JwtService();
+    const realtimeChatService = new RealtimeChatService();
+    const firebaseService = new FirebaseService(logger);
+    const cronService = new CronService(logger);
+    
+    this.services.set('jwtRepository', jwtService);
+    this.services.set('realtimeChatService', realtimeChatService);
+    this.services.set('firebaseService', firebaseService);
+    this.services.set('cronService', cronService);
+    this.services.set('profileConnectionCronService', new ProfileConnectionCronService(cronService, logger));
+
+    // Get repository instances
+    const accountRepository = this.services.get('accountRepository') as IAccountRepository;
+    const profileRepository = this.services.get('profileRepository') as IProfileRepository;
+    const profileConnectionRepository = this.services.get('profileConnectionRepository') as IProfileConnectionRepository;
+    const chatRepository = this.services.get('chatRepository') as IChatRepository;
+    const messageRepository = this.services.get('messageRepository') as IMessageRepository;
+    const emailVerificationRepository = this.services.get('emailVerificationRepository') as IEmailVerificationRepository;
+    const passwordResetRepository = this.services.get('passwordResetRepository') as IPasswordResetRepository;
+    const reportRepository = this.services.get('reportRepository') as IReportRepository;
+    const notificationRepository = this.services.get('notificationRepository') as INotificationRepository;
+    const imageRepository = this.services.get('imageRepository') as IImageRepository;
 
     // Use Cases
-    this.services.set('healthUseCase', new HealthUseCase(this.get<ISystemRepository>('systemRepository')));
+    this.services.set('healthUseCase', new HealthUseCase(systemService));
     this.services.set('welcomeUseCase', new WelcomeUseCase());
-    this.services.set('createAccountUseCase', new CreateAccountUseCase(
-      this.get<IAccountRepository>('accountRepository'),
-      this.get<IJwtRepository>('jwtRepository')
-    ));
-    this.services.set('getAccountUseCase', new GetAccountUseCase(this.get<IAccountRepository>('accountRepository')));
-    this.services.set('getAccountByEmailUseCase', new GetAccountByEmailUseCase(this.get<IAccountRepository>('accountRepository')));
-    this.services.set('createAccountWithEmailPasswordUseCase', new CreateAccountWithEmailPasswordUseCase(
-      this.get<IAccountRepository>('accountRepository'),
-      this.get<IJwtRepository>('jwtRepository')
-    ));
-    this.services.set('loginWithEmailPasswordUseCase', new LoginWithEmailPasswordUseCase(
-      this.get<IAccountRepository>('accountRepository'),
-      this.get<IJwtRepository>('jwtRepository')
-    ));
-    this.services.set('deleteAccountUseCase', new DeleteAccountUseCase(this.get<IAccountRepository>('accountRepository')));
-    this.services.set('refreshTokenUseCase', new RefreshTokenUseCase(this.get<IJwtRepository>('jwtRepository')));
-    this.services.set('profileUseCase', new ProfileUseCase(
-      this.get<IProfileRepository>('profileRepository'),
-      this.get<IImageRepository>('imageRepository'),
-      this.get<IProfileConnectionRepository>('profileConnectionRepository')
-    ));
+    this.services.set('createAccountUseCase', new CreateAccountUseCase(accountRepository, jwtService));
+    this.services.set('getAccountUseCase', new GetAccountUseCase(accountRepository));
+    this.services.set('getAccountByEmailUseCase', new GetAccountByEmailUseCase(accountRepository));
+    this.services.set('createAccountWithEmailPasswordUseCase', new CreateAccountWithEmailPasswordUseCase(accountRepository, jwtService));
+    this.services.set('loginWithEmailPasswordUseCase', new LoginWithEmailPasswordUseCase(accountRepository, jwtService));
+    this.services.set('deleteAccountUseCase', new DeleteAccountUseCase(accountRepository));
+    this.services.set('refreshTokenUseCase', new RefreshTokenUseCase(jwtService));
+    this.services.set('profileUseCase', new ProfileUseCase(profileRepository, imageRepository, profileConnectionRepository));
     this.services.set('emailVerificationUseCase', new EmailVerificationUseCase(
-      this.get<IEmailVerificationRepository>('emailVerificationRepository'),
-      this.get<IProfileRepository>('profileRepository'),
-      this.get<IEmailService>('emailService')
+      emailVerificationRepository,
+      profileRepository,
+      gmailService
     ));
     this.services.set('sendPasswordResetUseCase', new SendPasswordResetUseCase(
-      this.get<IPasswordResetRepository>('passwordResetRepository'),
-      this.get<IAccountRepository>('accountRepository'),
-      this.get<GmailService>('emailService')
+      passwordResetRepository,
+      accountRepository,
+      gmailService
     ));
     this.services.set('verifyPasswordResetCodeUseCase', new VerifyPasswordResetCodeUseCase(
-      this.get<IPasswordResetRepository>('passwordResetRepository')
+      passwordResetRepository
     ));
     this.services.set('resetPasswordUseCase', new ResetPasswordUseCase(
-      this.get<IPasswordResetRepository>('passwordResetRepository'),
-      this.get<IAccountRepository>('accountRepository')
+      passwordResetRepository,
+      accountRepository
     ));
     this.services.set('qnaExamplesUseCase', new QnAExamplesUseCase());
     this.services.set('profileConnectionUseCase', new ProfileConnectionUseCase(
-      this.get<IProfileConnectionRepository>('profileConnectionRepository'),
-      this.get<IProfileRepository>('profileRepository'),
-      this.get<IFirebaseService>('firebaseService'),
-      this.get<IReportRepository>('reportRepository'),
-      this.get<INotificationRepository>('notificationRepository')
+      profileConnectionRepository,
+      profileRepository,
+      firebaseService,
+      reportRepository,
+      notificationRepository
     ));
     this.services.set('createOrFindChatUseCase', new CreateOrFindChatUseCase(
-      this.get<IChatRepository>('chatRepository'),
-      this.get<IProfileRepository>('profileRepository')
+      chatRepository,
+      profileRepository
     ));
     this.services.set('getUserChatsUseCase', new GetUserChatsUseCase(
-      this.get<IChatRepository>('chatRepository'),
-      this.get<IProfileRepository>('profileRepository')
+      chatRepository,
+      profileRepository
     ));
     this.services.set('addMessageUseCase', new AddMessageUseCase(
-      this.get<IMessageRepository>('messageRepository'),
-      this.get<IChatRepository>('chatRepository'),
-      this.get<IProfileRepository>('profileRepository'),
-      this.get<IFirebaseService>('firebaseService')
+      messageRepository,
+      chatRepository,
+      profileRepository,
+      firebaseService
     ));
     this.services.set('updateMessageReadInfoUseCase', new UpdateMessageReadInfoUseCase(
-      this.get<IChatRepository>('chatRepository')
+      chatRepository
     ));
     this.services.set('getChatByIdUseCase', new GetChatByIdUseCase(
-      this.get<IChatRepository>('chatRepository')
+      chatRepository
     ));
     this.services.set('leaveChatUseCase', new LeaveChatUseCase(
-      this.get<IChatRepository>('chatRepository'),
-      this.get<IMessageRepository>('messageRepository')
+      chatRepository,
+      messageRepository
     ));
     this.services.set('createReportUseCase', new CreateReportUseCase(
-      this.get<IReportRepository>('reportRepository'),
-      this.get<IProfileRepository>('profileRepository')
+      reportRepository,
+      profileRepository
     ));
     this.services.set('getMyReportsUseCase', new GetMyReportsUseCase(
-      this.get<IReportRepository>('reportRepository'),
-      this.get<IProfileRepository>('profileRepository')
+      reportRepository,
+      profileRepository
     ));
     this.services.set('getReportsAgainstMeUseCase', new GetReportsAgainstMeUseCase(
-      this.get<IReportRepository>('reportRepository'),
-      this.get<IProfileRepository>('profileRepository')
+      reportRepository,
+      profileRepository
     ));
-    this.services.set('notificationUseCase', new NotificationUseCase(this.get<IFirebaseService>('firebaseService')));
-    this.services.set('notificationDataUseCase', new NotificationDataUseCase(this.get<INotificationRepository>('notificationRepository')));
+    this.services.set('notificationUseCase', new NotificationUseCase(firebaseService));
+    this.services.set('notificationDataUseCase', new NotificationDataUseCase(notificationRepository));
+
+    // Get Use Cases
+    const healthUseCase = this.services.get('healthUseCase') as IHealthUseCase;
+    const welcomeUseCase = this.services.get('welcomeUseCase') as IWelcomeUseCase;
+    const createAccountUseCase = this.services.get('createAccountUseCase') as ICreateAccountUseCase;
+    const getAccountUseCase = this.services.get('getAccountUseCase') as IGetAccountUseCase;
+    const getAccountByEmailUseCase = this.services.get('getAccountByEmailUseCase') as IGetAccountByEmailUseCase;
+    const createAccountWithEmailPasswordUseCase = this.services.get('createAccountWithEmailPasswordUseCase') as ICreateAccountWithEmailPasswordUseCase;
+    const loginWithEmailPasswordUseCase = this.services.get('loginWithEmailPasswordUseCase') as ILoginWithEmailPasswordUseCase;
+    const refreshTokenUseCase = this.services.get('refreshTokenUseCase') as IRefreshTokenUseCase;
+    const deleteAccountUseCase = this.services.get('deleteAccountUseCase') as IDeleteAccountUseCase;
+    const profileUseCase = this.services.get('profileUseCase') as IProfileUseCase;
+    const emailVerificationUseCase = this.services.get('emailVerificationUseCase') as IEmailVerificationUseCase;
+    const sendPasswordResetUseCase = this.services.get('sendPasswordResetUseCase') as ISendPasswordResetUseCase;
+    const verifyPasswordResetCodeUseCase = this.services.get('verifyPasswordResetCodeUseCase') as IVerifyPasswordResetCodeUseCase;
+    const resetPasswordUseCase = this.services.get('resetPasswordUseCase') as IResetPasswordUseCase;
 
     // Controllers
-    this.services.set('healthController', new HealthController(this.get<IHealthUseCase>('healthUseCase')));
-    this.services.set('welcomeController', new WelcomeController(this.get<IWelcomeUseCase>('welcomeUseCase')));
-    this.services.set('databaseController', new DatabaseController(this.get<IDatabaseService>('database')));
+    this.services.set('healthController', new HealthController(healthUseCase));
+    this.services.set('welcomeController', new WelcomeController(welcomeUseCase));
+    this.services.set('databaseController', new DatabaseController(database));
     this.services.set('accountController', new AccountController(
-      this.get<ICreateAccountUseCase>('createAccountUseCase'),
-      this.get<IGetAccountUseCase>('getAccountUseCase'),
-      this.get<IGetAccountByEmailUseCase>('getAccountByEmailUseCase'),
-      this.get<ICreateAccountWithEmailPasswordUseCase>('createAccountWithEmailPasswordUseCase'),
-      this.get<ILoginWithEmailPasswordUseCase>('loginWithEmailPasswordUseCase'),
-      this.get<IRefreshTokenUseCase>('refreshTokenUseCase'),
-      this.get<IDeleteAccountUseCase>('deleteAccountUseCase')
+      createAccountUseCase,
+      getAccountUseCase,
+      getAccountByEmailUseCase,
+      createAccountWithEmailPasswordUseCase,
+      loginWithEmailPasswordUseCase,
+      refreshTokenUseCase,
+      deleteAccountUseCase
     ));
-    this.services.set('profileController', new ProfileController(this.get<IProfileUseCase>('profileUseCase')));
-    this.services.set('emailVerificationController', new EmailVerificationController(this.get<IEmailVerificationUseCase>('emailVerificationUseCase')));
+    this.services.set('profileController', new ProfileController(profileUseCase));
+    this.services.set('emailVerificationController', new EmailVerificationController(emailVerificationUseCase));
     this.services.set('passwordResetController', new PasswordResetController(
-      this.get<ISendPasswordResetUseCase>('sendPasswordResetUseCase'),
-      this.get<IVerifyPasswordResetCodeUseCase>('verifyPasswordResetCodeUseCase'),
-      this.get<IResetPasswordUseCase>('resetPasswordUseCase')
+      sendPasswordResetUseCase,
+      verifyPasswordResetCodeUseCase,
+      resetPasswordUseCase
     ));
-    this.services.set('qnaExamplesController', new QnAExamplesController(this.get<IQnAExamplesUseCase>('qnaExamplesUseCase')));
-    this.services.set('profileConnectionController', new ProfileConnectionController(this.get<IProfileConnectionUseCase>('profileConnectionUseCase')));
+    // Get more Use Cases
+    const qnaExamplesUseCase = this.services.get('qnaExamplesUseCase') as IQnAExamplesUseCase;
+    const profileConnectionUseCase = this.services.get('profileConnectionUseCase') as IProfileConnectionUseCase;
+    const createOrFindChatUseCase = this.services.get('createOrFindChatUseCase') as ICreateOrFindChatUseCase;
+    const getUserChatsUseCase = this.services.get('getUserChatsUseCase') as IGetUserChatsUseCase;
+    const addMessageUseCase = this.services.get('addMessageUseCase') as IAddMessageUseCase;
+    const updateMessageReadInfoUseCase = this.services.get('updateMessageReadInfoUseCase') as IUpdateMessageReadInfoUseCase;
+    const getChatByIdUseCase = this.services.get('getChatByIdUseCase') as IGetChatByIdUseCase;
+    const leaveChatUseCase = this.services.get('leaveChatUseCase') as ILeaveChatUseCase;
+    const createReportUseCase = this.services.get('createReportUseCase') as ICreateReportUseCase;
+    const getMyReportsUseCase = this.services.get('getMyReportsUseCase') as IGetMyReportsUseCase;
+    const getReportsAgainstMeUseCase = this.services.get('getReportsAgainstMeUseCase') as IGetReportsAgainstMeUseCase;
+    const notificationUseCase = this.services.get('notificationUseCase') as INotificationUseCase;
+    const notificationDataUseCase = this.services.get('notificationDataUseCase') as INotificationDataUseCase;
+
+    this.services.set('qnaExamplesController', new QnAExamplesController(qnaExamplesUseCase));
+    this.services.set('profileConnectionController', new ProfileConnectionController(profileConnectionUseCase));
     this.services.set('chatController', new ChatController(
-      this.get<ICreateOrFindChatUseCase>('createOrFindChatUseCase'),
-      this.get<IGetUserChatsUseCase>('getUserChatsUseCase'),
-      this.get<IAddMessageUseCase>('addMessageUseCase'),
-      this.get<IUpdateMessageReadInfoUseCase>('updateMessageReadInfoUseCase'),
-      this.get<IGetAccountUseCase>('getAccountUseCase'),
-      this.get<IGetChatByIdUseCase>('getChatByIdUseCase'),
-      this.get<ILeaveChatUseCase>('leaveChatUseCase'),
-      this.get<IRealtimeChatService>('realtimeChatService')
+      createOrFindChatUseCase,
+      getUserChatsUseCase,
+      addMessageUseCase,
+      updateMessageReadInfoUseCase,
+      getAccountUseCase,
+      getChatByIdUseCase,
+      leaveChatUseCase,
+      realtimeChatService
     ));
     this.services.set('reportController', new ReportController(
-      this.get<ICreateReportUseCase>('createReportUseCase'),
-      this.get<IGetMyReportsUseCase>('getMyReportsUseCase'),
-      this.get<IGetReportsAgainstMeUseCase>('getReportsAgainstMeUseCase')
+      createReportUseCase,
+      getMyReportsUseCase,
+      getReportsAgainstMeUseCase
     ));
-    this.services.set('notificationController', new NotificationController(this.get<INotificationUseCase>('notificationUseCase')));
+    this.services.set('notificationController', new NotificationController(notificationUseCase));
     this.services.set('notificationDataController', new NotificationDataController(
-      this.get<INotificationDataUseCase>('notificationDataUseCase'),
-      this.get<IProfileRepository>('profileRepository')
+      notificationDataUseCase,
+      profileRepository
     ));
 
     // Middlewares
-    this.services.set('errorMiddleware', new ErrorMiddleware(this.get<ILoggerService>('logger')));
+    this.services.set('errorMiddleware', new ErrorMiddleware(logger));
+
+    // Get Controllers
+    const healthController = this.services.get('healthController') as HealthController;
+    const welcomeController = this.services.get('welcomeController') as WelcomeController;
+    const databaseController = this.services.get('databaseController') as DatabaseController;
+    const accountController = this.services.get('accountController') as AccountController;
+    const profileController = this.services.get('profileController') as ProfileController;
+    const emailVerificationController = this.services.get('emailVerificationController') as EmailVerificationController;
+    const passwordResetController = this.services.get('passwordResetController') as PasswordResetController;
+    const qnaExamplesController = this.services.get('qnaExamplesController') as QnAExamplesController;
+    const profileConnectionController = this.services.get('profileConnectionController') as ProfileConnectionController;
+    const chatController = this.services.get('chatController') as ChatController;
+    const reportController = this.services.get('reportController') as ReportController;
+    const notificationController = this.services.get('notificationController') as NotificationController;
+    const notificationDataController = this.services.get('notificationDataController') as NotificationDataController;
 
     // Routes
-    this.services.set('healthRoutes', new HealthRoutes(this.get<HealthController>('healthController')));
-    this.services.set('welcomeRoutes', new WelcomeRoutes(this.get<WelcomeController>('welcomeController')));
-    this.services.set('databaseRoutes', new DatabaseRoutes(this.get<DatabaseController>('databaseController')));
-    this.services.set('accountRoutes', new AccountRoutes(this.get<AccountController>('accountController')));
-    this.services.set('profileRoutes', new ProfileRoutes(this.get<ProfileController>('profileController')));
-    this.services.set('emailVerificationRoutes', new EmailVerificationRoutes(this.get<EmailVerificationController>('emailVerificationController')));
-    this.services.set('passwordResetRoutes', new PasswordResetRoutes());
-    this.services.set('qnaExamplesRoutes', new QnAExamplesRoutes(this.get<QnAExamplesController>('qnaExamplesController')));
-    this.services.set('profileConnectionRoutes', new ProfileConnectionRoutes(this.get<ProfileConnectionController>('profileConnectionController')));
-    this.services.set('chatRoutes', new ChatRoutes(this.get<ChatController>('chatController')));
-    this.services.set('reportRoutes', new ReportRoutes(this.get<ReportController>('reportController')));
-    this.services.set('notificationRoutes', new NotificationRoutes(
-      this.get<NotificationController>('notificationController'),
-      this.get<IFirebaseService>('firebaseService')
-    ));
-    this.services.set('notificationDataRoutes', new NotificationDataRoutes(this.get<NotificationDataController>('notificationDataController')));
+    this.services.set('healthRoutes', new HealthRoutes(healthController));
+    this.services.set('welcomeRoutes', new WelcomeRoutes(welcomeController));
+    this.services.set('databaseRoutes', new DatabaseRoutes(databaseController));
+    this.services.set('accountRoutes', new AccountRoutes(accountController));
+    this.services.set('profileRoutes', new ProfileRoutes(profileController));
+    this.services.set('emailVerificationRoutes', new EmailVerificationRoutes(emailVerificationController));
+    this.services.set('passwordResetRoutes', new PasswordResetRoutes(passwordResetController));
+    this.services.set('qnaExamplesRoutes', new QnAExamplesRoutes(qnaExamplesController));
+    this.services.set('profileConnectionRoutes', new ProfileConnectionRoutes(profileConnectionController));
+    this.services.set('chatRoutes', new ChatRoutes(chatController));
+    this.services.set('reportRoutes', new ReportRoutes(reportController));
+    this.services.set('notificationRoutes', new NotificationRoutes(notificationController, firebaseService));
+    this.services.set('notificationDataRoutes', new NotificationDataRoutes(notificationDataController));
   }
 
   get<T>(serviceName: string): T {

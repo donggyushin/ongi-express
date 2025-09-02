@@ -1,14 +1,13 @@
 import { Router } from 'express';
-import { Container } from '@/shared/utils/container';
 import { PasswordResetController } from '../controllers/password-reset.controller';
 
 export class PasswordResetRoutes {
   public router: Router;
   private passwordResetController: PasswordResetController;
 
-  constructor() {
+  constructor(passwordResetController: PasswordResetController) {
     this.router = Router();
-    this.passwordResetController = Container.getInstance().get<PasswordResetController>('passwordResetController');
+    this.passwordResetController = passwordResetController;
     this.initializeRoutes();
   }
 
@@ -21,5 +20,9 @@ export class PasswordResetRoutes {
 
     // POST /password-reset/reset - 비밀번호 재설정
     this.router.post('/reset', this.passwordResetController.resetPassword);
+  }
+
+  public getRouter(): Router {
+    return this.router;
   }
 }

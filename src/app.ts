@@ -58,7 +58,7 @@ class App {
     this.app.use('/accounts', accountRoutes.getRouter());
     this.app.use('/profiles', profileRoutes.getRouter());
     this.app.use('/email-verification', emailVerificationRoutes.getRouter());
-    this.app.use('/password-reset', passwordResetRoutes.router);
+    this.app.use('/password-reset', passwordResetRoutes.getRouter());
     this.app.use('/qna', qnaExamplesRoutes.getRouter());
     this.app.use('/profile-connections', profileConnectionRoutes.getRouter());
     this.app.use('/chats', chatRoutes.getRouter());
