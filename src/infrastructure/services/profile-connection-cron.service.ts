@@ -20,7 +20,9 @@ export class ProfileConnectionCronService {
 
   private async generateConnectionsForActiveProfiles(): Promise<void> {
     try {
-      const baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN || 'http://localhost:3000';
+      const baseUrl = process.env.RAILWAY_PUBLIC_DOMAIN 
+        ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` 
+        : 'http://localhost:3000';
       const url = `${baseUrl}/profile-connections/generate-for-active-profiles`;
       
       this.loggerService.info('Calling profile connections API:', url);
