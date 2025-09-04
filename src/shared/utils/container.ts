@@ -16,6 +16,7 @@ import { PrismaEmailVerificationService } from '@/infrastructure/services/prisma
 import { PrismaPasswordResetService } from '@/infrastructure/services/prisma-password-reset.service';
 import { MailgunService, IEmailService } from '@/infrastructure/services/mailgun.service';
 import { GmailService } from '@/infrastructure/services/gmail.service';
+import { ResendService } from '@/infrastructure/services/resend.service';
 import { IDatabaseService } from '@/shared/types';
 import { HealthController, WelcomeController, DatabaseController, AccountController, ProfileController, QnAExamplesController, ProfileConnectionController, ChatController, ReportController, NotificationDataController } from '@/presentation/controllers';
 import { EmailVerificationController } from '@/presentation/controllers/email-verification.controller';
@@ -48,14 +49,29 @@ export class Container {
     const logger = new ConsoleLoggerService();
     const database = new DatabaseService();
     const prisma = PrismaService.getInstance();
-    const gmailService = new GmailService();
+    
+    // Choose email service based on environment or configuration
+    let emailService: IEmailService;
+    try {
+      if (process.env.RESEND_API_KEY) {
+        emailService = new ResendService();
+        logger.info('Using Resend email service');
+      } else {
+        emailService = new GmailService();
+        logger.info('Using Gmail email service');
+      }
+    } catch (error) {
+      logger.error('Failed to initialize email service, falling back to Gmail:', error);
+      emailService = new GmailService();
+    }
+    
     const systemService = new SystemService();
     
     // Register base services
     this.services.set('logger', logger);
     this.services.set('database', database);
     this.services.set('prisma', prisma);
-    this.services.set('emailService', gmailService);
+    this.services.set('emailService', emailService);
     this.services.set('systemRepository', systemService);
     
     // Register repositories that depend on prisma
@@ -108,12 +124,12 @@ export class Container {
     this.services.set('emailVerificationUseCase', new EmailVerificationUseCase(
       emailVerificationRepository,
       profileRepository,
-      gmailService
+      emailService
     ));
     this.services.set('sendPasswordResetUseCase', new SendPasswordResetUseCase(
       passwordResetRepository,
       accountRepository,
-      gmailService
+      emailService
     ));
     this.services.set('verifyPasswordResetCodeUseCase', new VerifyPasswordResetCodeUseCase(
       passwordResetRepository

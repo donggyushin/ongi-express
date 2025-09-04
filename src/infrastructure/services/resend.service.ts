@@ -1,38 +1,25 @@
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { IEmailService } from './mailgun.service';
 
-export class GmailService implements IEmailService {
-  private transporter: nodemailer.Transporter;
+export class ResendService implements IEmailService {
+  private resend: Resend;
 
   constructor() {
-    const email = process.env.GMAIL_EMAIL;
-    const password = process.env.GMAIL_APP_PASSWORD;
+    const apiKey = process.env.RESEND_API_KEY;
 
-    if (!email || !password) {
-      throw new Error('GMAIL_EMAIL and GMAIL_APP_PASSWORD are required');
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is required');
     }
 
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // true for 465, false for other ports
-      auth: {
-        user: email,
-        pass: password
-      },
-      connectionTimeout: 60000, // 60 seconds
-      greetingTimeout: 30000,   // 30 seconds
-      socketTimeout: 60000,     // 60 seconds
-    });
-
-    console.log('Gmail SMTP initialized with email:', email);
+    this.resend = new Resend(apiKey);
+    console.log('Resend API initialized');
   }
 
   async sendVerificationEmail(to: string, verificationCode: string): Promise<void> {
     try {
-      const mailOptions = {
-        from: `"Ongi" <${process.env.GMAIL_EMAIL}>`,
-        to: to,
+      const { data, error } = await this.resend.emails.send({
+        from: 'Ongi <noreply@yourdomain.com>', // 실제 도메인으로 변경 필요
+        to: [to],
         subject: '이메일 인증 코드',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -50,17 +37,13 @@ export class GmailService implements IEmailService {
             </p>
           </div>
         `,
-        text: `
-이메일 인증 코드: ${verificationCode}
+      });
 
-이 코드는 5분 후에 만료됩니다.
-본인이 요청하지 않았다면 이 메일을 무시해주세요.
+      if (error) {
+        console.error('❌ Resend API error:', error);
+        throw new Error('Failed to send verification email');
+      }
 
-이 메일은 Ongi에서 자동으로 발송되었습니다.
-        `
-      };
-
-      await this.transporter.sendMail(mailOptions);
       console.log(`✅ Verification email sent to ${to} with code: ${verificationCode}`);
     } catch (error) {
       console.error('❌ Failed to send verification email:', error);
@@ -70,9 +53,9 @@ export class GmailService implements IEmailService {
 
   async sendPasswordResetEmail(to: string, resetCode: string): Promise<void> {
     try {
-      const mailOptions = {
-        from: `"Ongi" <${process.env.GMAIL_EMAIL}>`,
-        to: to,
+      const { data, error } = await this.resend.emails.send({
+        from: 'Ongi <noreply@yourdomain.com>', // 실제 도메인으로 변경 필요
+        to: [to],
         subject: '비밀번호 재설정 코드',
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -91,19 +74,13 @@ export class GmailService implements IEmailService {
             </p>
           </div>
         `,
-        text: `
-비밀번호 재설정 코드: ${resetCode}
+      });
 
-이 코드는 10분 후에 만료됩니다.
-본인이 요청하지 않았다면 이 메일을 무시해주세요.
+      if (error) {
+        console.error('❌ Resend API error:', error);
+        throw new Error('Failed to send password reset email');
+      }
 
-⚠️ 보안을 위해 이 코드를 타인과 공유하지 마세요.
-
-이 메일은 Ongi에서 자동으로 발송되었습니다.
-        `
-      };
-
-      await this.transporter.sendMail(mailOptions);
       console.log(`✅ Password reset email sent to ${to} with code: ${resetCode}`);
     } catch (error) {
       console.error('❌ Failed to send password reset email:', error);
