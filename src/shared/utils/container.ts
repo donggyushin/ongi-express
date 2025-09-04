@@ -61,7 +61,7 @@ export class Container {
         logger.info('Using Gmail email service');
       }
     } catch (error) {
-      logger.error('Failed to initialize email service, falling back to Gmail:', error);
+      logger.error('Failed to initialize email service, falling back to Gmail:', error as Error);
       emailService = new GmailService();
     }
     

@@ -1,6 +1,6 @@
 import { IPasswordResetRepository } from '../repositories/password-reset.repository';
 import { IAccountRepository } from '../repositories/account.repository';
-import { GmailService } from '../../infrastructure/services/gmail.service';
+import { IEmailService } from '../../infrastructure/services/mailgun.service';
 
 export interface ISendPasswordResetUseCase {
   execute(email: string): Promise<{ success: boolean; message: string }>;
@@ -18,7 +18,7 @@ export class SendPasswordResetUseCase implements ISendPasswordResetUseCase {
   constructor(
     private passwordResetRepository: IPasswordResetRepository,
     private accountRepository: IAccountRepository,
-    private emailService: GmailService
+    private emailService: IEmailService
   ) {}
 
   async execute(email: string): Promise<{ success: boolean; message: string }> {

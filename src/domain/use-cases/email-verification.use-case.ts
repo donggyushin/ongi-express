@@ -1,5 +1,6 @@
 import { IEmailVerificationRepository, IProfileRepository } from '../repositories';
 import { EmailVerification, Profile } from '../entities';
+import { IEmailService } from '../../infrastructure/services/mailgun.service';
 
 export interface IEmailVerificationUseCase {
   sendVerificationCode(accountId: string, email: string): Promise<void>;
@@ -11,7 +12,7 @@ export class EmailVerificationUseCase implements IEmailVerificationUseCase {
   constructor(
     private emailVerificationRepository: IEmailVerificationRepository,
     private profileRepository: IProfileRepository,
-    private emailService: any // IEmailService 타입은 나중에 정의
+    private emailService: IEmailService
   ) {}
 
   async sendVerificationCode(accountId: string, email: string): Promise<void> {
