@@ -17,8 +17,21 @@ export class ResendService implements IEmailService {
 
   async sendVerificationEmail(to: string, verificationCode: string): Promise<void> {
     try {
+      // 개발 환경에서는 콘솔에 인증 코드 출력
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('='.repeat(50));
+        console.log('📧 DEVELOPMENT MODE - Email Simulation');
+        console.log('='.repeat(50));
+        console.log(`To: ${to}`);
+        console.log(`Subject: 이메일 인증 코드`);
+        console.log(`Verification Code: ${verificationCode}`);
+        console.log('='.repeat(50));
+        console.log('💡 Use this code for testing!');
+        return;
+      }
+
       const { data, error } = await this.resend.emails.send({
-        from: 'Ongi <noreply@yourdomain.com>', // 실제 도메인으로 변경 필요
+        from: 'Ongi <onboarding@resend.dev>', // Resend 기본 테스트 도메인 사용
         to: [to],
         subject: '이메일 인증 코드',
         html: `
@@ -53,8 +66,21 @@ export class ResendService implements IEmailService {
 
   async sendPasswordResetEmail(to: string, resetCode: string): Promise<void> {
     try {
+      // 개발 환경에서는 콘솔에 리셋 코드 출력
+      if (process.env.NODE_ENV !== 'production') {
+        console.log('='.repeat(50));
+        console.log('📧 DEVELOPMENT MODE - Email Simulation');
+        console.log('='.repeat(50));
+        console.log(`To: ${to}`);
+        console.log(`Subject: 비밀번호 재설정 코드`);
+        console.log(`Reset Code: ${resetCode}`);
+        console.log('='.repeat(50));
+        console.log('💡 Use this code for testing!');
+        return;
+      }
+
       const { data, error } = await this.resend.emails.send({
-        from: 'Ongi <noreply@yourdomain.com>', // 실제 도메인으로 변경 필요
+        from: 'Ongi <onboarding@resend.dev>', // Resend 기본 테스트 도메인 사용
         to: [to],
         subject: '비밀번호 재설정 코드',
         html: `
