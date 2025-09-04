@@ -13,10 +13,19 @@ export class GmailService implements IEmailService {
     }
 
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // true for 465, false for other ports
       auth: {
         user: email,
         pass: password
+      },
+      connectionTimeout: 60000, // 60 seconds
+      greetingTimeout: 30000,   // 30 seconds
+      socketTimeout: 60000,     // 60 seconds
+      tls: {
+        rejectUnauthorized: false,
+        ciphers: 'SSLv3'
       }
     });
 
