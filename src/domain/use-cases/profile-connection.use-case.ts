@@ -4,15 +4,15 @@ import { IFirebaseService } from '@/domain/services/IFirebaseService';
 
 export interface IProfileConnectionUseCase {
   addRandomConnection(profileId: string): Promise<{ connection: ProfileConnection; addedProfile: Profile | null }>;
-  getConnectedProfiles(accountId: string, limit?: number): Promise<{ 
-    profiles: (Profile & { 
-      isNew: boolean; 
+  getConnectedProfiles(accountId: string, limit?: number): Promise<{
+    profiles: (Profile & {
+      isNew: boolean;
       reportStatus: {
         isReported: boolean;
         theyReported: boolean;
       };
-    })[]; 
-    newProfileIds: string[]; 
+    })[];
+    newProfileIds: string[];
     profileConnection: ProfileConnection | null;
   }>;
   markConnectionAsViewed(accountId: string, otherProfileId: string): Promise<ProfileConnection>;
@@ -75,15 +75,15 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     return { connection: updatedConnection, addedProfile: randomProfile };
   }
 
-  async getConnectedProfiles(accountId: string, limit?: number): Promise<{ 
-    profiles: (Profile & { 
-      isNew: boolean; 
+  async getConnectedProfiles(accountId: string, limit?: number): Promise<{
+    profiles: (Profile & {
+      isNew: boolean;
       reportStatus: {
         isReported: boolean;
         theyReported: boolean;
       };
-    })[]; 
-    newProfileIds: string[]; 
+    })[];
+    newProfileIds: string[];
     profileConnection: ProfileConnection | null;
   }> {
     // accountId로 프로필 조회
@@ -98,7 +98,7 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
     // Get report statuses for all connected profiles
     const otherProfileIds = result.profiles.map(profile => profile.id);
     const reportStatuses = await this.reportRepository.getMultipleReportStatuses(
-      currentProfile.id, 
+      currentProfile.id,
       otherProfileIds
     );
 
@@ -133,7 +133,7 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
   async generateConnectionsForRecentlyActiveProfiles(): Promise<{ processed: number; connectionsCreated: number }> {
     // 최근 한 달(30일) 이내에 활동한 프로필들 조회
     const recentlyActiveProfiles = await this.profileRepository.findRecentlyActiveProfiles(30);
-    
+
     let processed = 0;
     let connectionsCreated = 0;
 
@@ -142,10 +142,28 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
       try {
         const result = await this.addRandomConnection(profile.id);
         processed++;
-        
+
         if (result.addedProfile) {
           connectionsCreated++;
-          
+
+          // 새로운 연결이 생성된 경우 데이터베이스 알림 생성
+          try {
+            await this.notificationRepository.create({
+              recipientId: profile.id,
+              type: NotificationType.NEW_CONNECTION,
+              title: '새로운 인연이 생겼어요! 💕',
+              message: '새로운 프로필과 연결되었습니다. 지금 확인해보세요!',
+              isRead: false,
+              data: {
+                connectedProfileId: result.addedProfile.id,
+                type: 'match'
+              },
+              urlScheme: 'ongi://'
+            });
+          } catch (error) {
+            console.error(`Failed to create notification for profile ${profile.id}:`, error);
+          }
+
           // 새로운 연결이 생성된 경우 해당 프로필에게 푸시 알림 전송
           if (profile.fcmToken) {
             try {
@@ -154,8 +172,8 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
                 '새로운 인연이 생겼어요! 💕',
                 `새로운 프로필과 연결되었습니다. 지금 확인해보세요!`,
                 {
-                  type: 'new_connection',
-                  url_scheme: 'ongi://profiles'
+                  type: 'match',
+                  url_scheme: 'ongi://'
                 }
               );
             } catch (error) {
@@ -201,7 +219,7 @@ export class ProfileConnectionUseCase implements IProfileConnectionUseCase {
 
     // 5. 좋아요 추가
     await this.profileConnectionRepository.addLike(likerProfile.id, likedProfileId);
-    
+
     // 6. 좋아요 받은 사람에게 데이터베이스 알림 생성
     try {
       await this.notificationRepository.create({
